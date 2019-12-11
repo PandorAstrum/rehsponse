@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block title %}| Details {% endblock %}
+{% block content %}
+<p>{{ object.rehsponse_text }}<br/>
+    by {{ object.user_profile.first_name }}<br/>
+    {{ object.created_on|timesince }} ago</p>
+
+{% endblock %}

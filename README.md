@@ -1,10 +1,10 @@
 # REHSPONSE
-> A social web app
+> A social web app with a REST API
 
 [![Python Version][python-image]][python-url]
 [![Django Version][django-image]][django-url]
 
-One to two paragraph statement about your product and what it does.
+
 
 ![header-pic]
 
@@ -40,6 +40,7 @@ pipenv install
 
     ├── src (folder)                        # contains django backbone
     ├── rehsponse (folder)                  # contains the app
+    |   └── api (folder)                    # contains the api
     └── template (folder)                   # default template folder
 
 ## Usage example
@@ -60,6 +61,16 @@ truffle migrate
 
 ## Release History
 
+* 0.0.9
+    * CHANGE: template merge with api
+* 0.0.8
+    * ADD: Add api folder and django rest routes
+* 0.0.7
+    * ADD: app model and views with route
+* 0.0.6
+    * ADD: all template
+* 0.0.5
+    * ADD: docker, flake8 and travis CI
 * 0.0.4
     * ADD: Add git ignore, readme and licence
 * 0.0.3

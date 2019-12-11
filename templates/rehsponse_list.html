@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}| Home {% endblock %}
+{% block content %}
+
+    <div class="row">
+        <div class="col-md-12">
+            {% if not request.GET.q %}
+        <div class="row">
+            {% include "create_rehsponse_form.html" with form=create_form action_url=create_url btn_title="Rehsponse" form_id="res-form"%}
+            <hr/>
+        </div>
+    {% endif %}
+            <div id="response-collection"></div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+    function getParameterByName(name, url) {
+        if (!url) {
+            url = window.location.href;
+        }
+        name = name.replace(/[\[\]]/g, "\\$&");
+        var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+            results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, " "));
+    }
+
+    $(document).ready(function(){
+        var query = getParameterByName('q');
+        var res_list = [];
+        function parse_rehsponse(){
+            if (res_list.length === 0) {
+                $("#response-collection").append("<p>Nothing Found</p>")
+            } else {
+                $.each(res_list, function (key, val) {
+                    var re_key = key;
+                    var re_content = val.rehsponse_text;
+                    var re_user = val.user_profile.first_name
+                    $("#response-collection").append(
+                        "<p>"+re_content+"<br/>by "+ re_user +"<br/>" + "<a href='#'\"\">View</a></p>"
+                    )
+                })
+            }
+
+        }
+        $.ajax({
+            url: '/api/list',
+            method: 'GET',
+            data: {
+              'q': query
+            },
+            success: function (data) {
+                res_list = data;
+                parse_rehsponse();
+            },
+            error: function (data) {
+                console.log(data);
+            }
+        });
+
+        $("#res-form").submit(function(event){
+            var this_ = $(this);
+            event.preventDefault();
+            console.log(event);
+            console.log(this_);
+        })
+    })
+    </script>
+{% endblock %}
