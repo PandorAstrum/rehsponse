@@ -12,6 +12,7 @@ urlpatterns = [
     path('rehsponse/<int:pk>/delete', views.RehsponseDeleteView.as_view(), name="delete"),  # /rehsponse/1/delete
     re_path(r'^user/(?P<username>\w+)/$', views.UserDetailView.as_view(), name='userdetail'),  # /user/username
     re_path(r'^tags/(?P<hashtag>.*)/$', views.HashTagView.as_view(), name='hashtag'),  # /tag/hashtag
+    path('contacts/', views.ContactListView.as_view(), name="contact"),  # /contacts/
     # path('user/<slug:first_name>/', views.UserDetailView.as_view(), name="userdetail"),
     # path('rehsponse/create/', views.RehsponseCreateView.as_view(), name="create"),  # /rehsponse/create
     # path('rehsponse/<int:pk>/edit', views.RehsponseUpdateView.as_view(), name="update"),  # /rehsponse/1/edit

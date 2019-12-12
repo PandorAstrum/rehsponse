@@ -27,4 +27,8 @@ class HashTagAdmin(admin.ModelAdmin):
     list_display = ["__str__", "created_on"]
 
 
+@admin.register(models.Contact)
+class ContactAdmin(admin.ModelAdmin):
+    list_display = ["__str__", "is_active"]
+
 admin.site.site_header = "Rehsponse Administration"

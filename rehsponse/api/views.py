@@ -37,6 +37,7 @@ class RehsponseListAPIView(generics.ListAPIView):
     """Get all list of response"""
     serializer_class = serializers.RehsponseSerializer
     pagination_class = pagination.StandardResultsPaginations
+    # authentication_classes = (TokenAuthentication,) attach header token before ajax request
 
     def get_queryset(self):
         # get random response
@@ -57,6 +58,7 @@ class RehsponseListAPIView(generics.ListAPIView):
 class RehsponseCreateAPIView(generics.CreateAPIView):
     """Create a response"""
     serializer_class = serializers.RehsponseSerializer
+    # authentication_classes = (TokenAuthentication,)
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
@@ -78,6 +80,11 @@ class RehsponseUpdateAPIView(generics.UpdateAPIView):
 # delete
 class RehsponseDeleteAPIView(generics.DestroyAPIView):
     serializer_class = serializers.RehsponseSerializer
+
+
+class ContactListAPIView(generics.ListAPIView):
+    queryset = models.Contact.objects.all()
+    serializer_class = serializers.ContactSerializer
 
 
 class PostViewSets(viewsets.ModelViewSet):

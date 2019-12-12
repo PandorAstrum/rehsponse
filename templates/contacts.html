@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{block.super}} | Contacts {% endblock %}
+
+{% block content %}
+    <div class="row">
+    <div class="col-md-2 shadow">
+
+    </div>
+    <div class="col-md-2 pt-3 position-fixed" id="navigation-container">
+        <h4 class="pt-3">Navigation</h4>
+    </div>
+
+    <div class="col-md-10 pt-3" id="contacts-container">
+
+    </div>
+</div>
+
+{% endblock %}
+{% block script %}
+    <script>
+    $(document).ready(function(){
+        // Global variables
+        let contactsCollection = $("#contacts-container");
+        let navigationCollection = $("#navigation-container");
+
+        // functions
+        function to_position(divid){
+            $('html, body').animate({scrollTop:$('#'+ divid).position().top - 50 }, 'slow');
+        }
+        // add navigation link
+        function addNavigation(title, klass){
+            let navigationTemplate = `<a href="#${klass}" onClick=to_position> <i class="fas fa-angle-double-right"></i> <span>${title}</span> </a><br/>`;
+            navigationCollection.append(navigationTemplate);
+            $('a[href="#' + klass + '"]').bind('click', function(e){
+                    e.preventDefault();
+                    to_position(klass);
+                });
+        }
+
+        // add a section in the page
+        function attachContent(val){
+            let isActive = val.is_active;
+            if (isActive) {
+                let title = val.title_text;
+                let content = val.content_text;
+                let iconName = val.icon_name;
+                let klass = title.replace(/[^a-z0-9\s]/gi, '').replace(/[_\s]/g, '-')
+                let templateTag =
+                    `<div class="row" id="${klass}"> <div class="col-md-2">
+                     <i class="${iconName}"></i></div><div class="col-md-10"><div class="row">
+                     <h3>${title}</h3></div><div class="row"><span>${content}</span></div>
+                     <hr/></div></div>`;
+                contactsCollection.append(templateTag);
+                addNavigation(title, klass);
+
+            }
+        }
+
+        // fetch contacts from api
+        function getContactData(){
+            $.ajax({
+                url: '/api/contacts/',
+                method: "GET",
+                success: function (data) {
+                    $.each(data, function(key, val){
+                        attachContent(val);
+                    });
+                },
+                error: function (data) {
+                    console.log(data);
+                }
+            })
+        }
+
+        getContactData();
+    })
+    </script>
+{% endblock %}

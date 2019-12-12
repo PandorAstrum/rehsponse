@@ -62,16 +62,18 @@ class RehsponseSerializer(serializers.ModelSerializer):
     user_profile = UserDisplaySerializer(read_only=True)
     timesince = serializers.SerializerMethodField()
     date_display = serializers.SerializerMethodField()
-
+    own_url = serializers.SerializerMethodField()
     class Meta:
         model = models.Rehsponse
         fields = [
+            'id',
             'user_profile',
             'rehsponse_text',
             'updated_on',
             'created_on',
             'date_display',
-            'timesince'
+            'timesince',
+            'own_url'
         ]
 
     def get_date_display(self, obj):
@@ -79,3 +81,14 @@ class RehsponseSerializer(serializers.ModelSerializer):
 
     def get_timesince(self, obj):
         return timesince(obj.updated_on) + " ago"
+
+    def get_own_url(self, obj):
+        return reverse_lazy('detail', kwargs={'pk': obj.id})
+
+
+class ContactSerializer(serializers.ModelSerializer):
+    """Contacts Serializer"""
+
+    class Meta:
+        model = models.Contact
+        fields = "__all__"

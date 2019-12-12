@@ -95,8 +95,8 @@ class Rehsponse(models.Model):
     class Meta:
         ordering = ['-updated_on']
 
-    def get_absolute_url(self):
-        return reverse_lazy("detail", kwargs={'pk': self.pk})
+    def get_absolute_url(self, obj):
+        return reverse_lazy("detail", kwargs={'pk': obj.pk})
 
 
 class HashTag(models.Model):
@@ -111,3 +111,13 @@ class HashTag(models.Model):
 
     def get_absolute_url(self):
         return reverse_lazy("hashtag", kwargs={'hashtag': self.tag})
+
+
+class Contact(models.Model):
+    title_text = models.CharField(max_length=255)
+    content_text = models.TextField(blank=True, null=True)
+    icon_name = models.CharField(max_length=120, default="fas fa-5x fa-stack-1x fa-book-open")
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.title_text

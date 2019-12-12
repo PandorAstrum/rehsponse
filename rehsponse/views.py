@@ -89,6 +89,11 @@ class HashTagView(View):
         return render(request, 'hashtags/tag_view.html', {'obj': obj})
 
 
+class ContactListView(ListView):
+    template_name = "contacts.html"
+    model = models.Contact
+
+
 class AuthView(ListView):
     """Base login page"""
     template_name = "auth.html"

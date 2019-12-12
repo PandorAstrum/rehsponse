@@ -1,12 +1,40 @@
 {% extends "base.html" %}
-{% block title %}| Home {% endblock %}
+{% load static %}
+{% block title %} {{block.super}} | Home {% endblock %}
 {% block content %}
+    <div class="row pt-3" data-pg-collapsed>
+        <div class="col-md-2 text-center" data-pg-collapsed>
+            <a href="">
+                <img class="w-200 img-thumbnail rounded-circle mx-auto shadow-sm" src="{% static 'assets/img/user-profile-svgrepo-com.svg' %}" alt="{{ request.user.first_name}}_photo">
+            </a>
+            <h6 class="pt-3">{{request.user.first_name}} {{ request.user.last_name }}</h6>
+            <h6><small>Joined {{request.user.created_on}}</small></h6>
+        </div>
+        <div class="col-md-8 pb-4">
+            {% include "rehsponse/forms/create_rehsponse_form.html" with form=create_form action_url=create_url btn_title="Rehsponse" form_id="res-form"%}
+            <hr/>
+            <div id="response-container">
 
+            </div>
+
+    </div>
+    <div class="col-md-2">
+        <h4>Latest Tags</h4>
+        <hr/>
+        <h6>#Tags1</h6>
+        <h6>#Tags1</h6>
+        <h6>#Tags1</h6>
+        <h6>#Tags1</h6>
+        <h6>#Tags1</h6>
+        <h6>#Tags1</h6>
+        <h6>#Tags1</h6>
+    </div>
+</div>
     <div class="row">
         <div class="col-md-12">
             {% if not request.GET.q %}
         <div class="row">
-            {% include "rehsponse/forms/create_rehsponse_form.html" with form=create_form action_url=create_url btn_title="Rehsponse" form_id="res-form"%}
+
             <hr/>
         </div>
     {% endif %}
@@ -37,12 +65,12 @@
     $(document).ready(function(){
         // global variables
         let query = getParameterByName('q');
-        let responseCollection = $("#response-collection");
+        let responseCollection = $("#response-container");
         let responseList = [];
         let resCreateForm = $("#res-form");
         let charsStart = 140;
         let charsCurrent = 0;
-        resCreateForm.append("<span id='resCharsLeft'>"+ charsStart +"</span>");
+        resCreateForm.append("<small><span id='resCharsLeft'>"+ charsStart + " charecters left" +"</span></small>");
         let nextResponseURL;
         let spanChars = $("#resCharsLeft");
 
@@ -54,18 +82,30 @@
             let reDateDisplay = responseData.date_display;
             let reUser = responseData.user_profile.first_name;
             let reUserUrl = responseData.user_profile.user_url;
-            let responseTag = "<div class='media-body'>"+reContent+"<br/>by <a href='"
-                    + reUserUrl
-                    + "'>"
-                    + reUser
-                    + "</a>"
-                    + " | "
-                    + reDateDisplay
-                     + " | "
-                    + reTimesince
-                    + " | "
-                    + "<a href='{ }'\"\">View</a></div>"
-                    + "<hr/>";
+            let reUrl = responseData.own_url;
+            let responseTag =
+                `<div class="row" data-pg-collapsed> <div class="col-md-2">
+                <img src="{% static 'assets/img/user-profile-svgrepo-com.svg' %}"  class=" img-thumbnail rounded-circle" alt="user_photo"/></div>
+                <div class="col-md-10 pl-2 pr-2">
+                    <div class="row" data-pg-collapsed>
+                        <span><small><a href="${reUserUrl}">@${reUser}</a> at ${reDateDisplay} (${reTimesince})</small></span>
+                    </div>
+                    <div class="row" data-pg-collapsed>
+                        <p>${reContent}</p>
+                    </div>
+                    <div class="row" data-pg-collapsed>
+                        <div class="col-md-6" data-pg-collapsed>
+                            <span><small> responses count | love count </small></span>
+                        </div>
+                        <div class="btn-group btn-group-sm col-md-6" role="group" aria-label="Basic example" data-pg-collapsed>
+                            <button type="button" class="btn btn-secondary">Rehspond</button>
+                            <button type="button" class="btn btn-secondary">Love</button>
+                            <button type="button" class="btn btn-secondary">Edit</button>
+                        </div>
+                    </div>
+                    <hr/>
+                </div>
+            </div>`;
         if (prepend === true) {
             responseCollection.prepend(responseTag);
         }
@@ -122,7 +162,7 @@
             success: function (data) {
                 thisForm.find("input[type=text], textarea").val("");
                 attachResponse(data, true);
-                spanChars.text(charsStart);
+                spanChars.text(charsStart + " characters left");
                 updateHashLink();
             },
             error: function (data) {
@@ -165,9 +205,7 @@
         $("#res-form textarea").keyup(function (event) {
             let resValue = $(this).val();
             charsCurrent = charsStart - resValue.length;
-            spanChars.text(charsCurrent);
-
-            spanChars.text(charsCurrent);
+            spanChars.text(charsCurrent + " characters left");
             if (charsCurrent > 0) {
                 // remove classes
                 spanChars.removeClass("grey-color");

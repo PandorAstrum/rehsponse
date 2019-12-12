@@ -12,5 +12,6 @@ urlpatterns = [
     path('rehsponse/<int:pk>/', views.RehsponseDetailAPIView.as_view(), name="apidetail"),  # api/rehsponse/1
     path('rehsponse/create/', views.RehsponseCreateAPIView.as_view(), name="apicreate"),  # api/rehsponse/create
     path('rehsponse/<int:pk>/edit', views.RehsponseUpdateAPIView.as_view(), name="apiupdate"),  # api/rehsponse/1/edit
-    path('rehsponse/<int:pk>/delete', views.RehsponseDeleteAPIView.as_view(), name="apidelete")  # api/rehsponse/1/delete
+    path('rehsponse/<int:pk>/delete', views.RehsponseDeleteAPIView.as_view(), name="apidelete"),  # api/rehsponse/1/delete
+    path('contacts/', views.ContactListAPIView.as_view(), name="apicontact")  # api/contacts
 ]
