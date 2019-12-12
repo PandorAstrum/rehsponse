@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics
 from rehsponse.api import serializers, permission
 from rehsponse import models
+from rehsponse.api import pagination
 
 
 # Create your views here.
@@ -24,17 +25,21 @@ class UserProfileViewSets(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('first_name', 'last_name', 'email', )
 
-
+# user detail view
+# class UserDetailAPIView(generics.Deta)
 class UserPasswordChange():
     """Handles request for password change"""
     pass
 
 
-class RehsponseListView(generics.ListAPIView):
+# list response
+class RehsponseListAPIView(generics.ListAPIView):
+    """Get all list of response"""
     serializer_class = serializers.RehsponseSerializer
+    pagination_class = pagination.StandardResultsPaginations
 
     def get_queryset(self):
-        qs = models.Rehsponse.objects.all()
+        qs = models.Rehsponse.objects.all().order_by('-updated_on')
         query = self.request.GET.get("q", None)
         if query is not None:
             qs = qs.filter(
@@ -43,6 +48,33 @@ class RehsponseListView(generics.ListAPIView):
                 Q(user_profile__last_name__icontains=query)
             )
         return qs
+
+
+# create response
+class RehsponseCreateAPIView(generics.CreateAPIView):
+    """Create a response"""
+    serializer_class = serializers.RehsponseSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user_profile=self.request.user)
+
+
+# retrieve
+class RehsponseDetailAPIView(generics.RetrieveAPIView):
+    serializer_class = serializers.RehsponseSerializer
+    queryset = models.Rehsponse.objects.all()
+
+
+# update
+class RehsponseUpdateAPIView(generics.UpdateAPIView):
+    serializer_class = serializers.RehsponseSerializer
+    queryset = models.Rehsponse.objects.all()
+
+
+# delete
+class RehsponseDeleteAPIView(generics.DestroyAPIView):
+    serializer_class = serializers.RehsponseSerializer
 
 
 class PostViewSets(viewsets.ModelViewSet):

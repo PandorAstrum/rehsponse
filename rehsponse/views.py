@@ -9,6 +9,31 @@ from rehsponse.forms import RehsponseModelForm
 from rehsponse.mixins import FormUserNeededMixin, UserOwnerMixin
 
 
+class RehsponseListView(LoginRequiredMixin, ListView):
+    """All Response View"""
+    template_name = "rehsponse_list.html"
+    login_url = "/login/"
+
+    def get_queryset(self, *args, **kwargs):
+        """Query mixin"""
+        qs = models.Rehsponse.objects.all()
+        query = self.request.GET.get("q", None)
+        if query is not None:
+            qs = qs.filter(
+                Q(rehsponse_text__icontains=query) |
+                Q(user_profile__first_name__icontains=query) |
+                Q(user_profile__last_name__icontains=query)
+            )
+        return qs
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        """Context mixin"""
+        context = super(RehsponseListView, self).get_context_data(object_list=None, **kwargs)
+        context['create_form'] = RehsponseModelForm()
+        context['create_url'] = reverse_lazy('create')
+        return context
+
+
 class RehsponseCreateView(LoginRequiredMixin, FormUserNeededMixin, CreateView):
     """Create A Response"""
     form_class = RehsponseModelForm
@@ -46,31 +71,6 @@ class RehsponseDeleteView(LoginRequiredMixin, UserOwnerMixin, DeleteView):
     model = models.Rehsponse
     template_name = "delete_rehsponse_form.html"
     success_url = reverse_lazy("home")
-
-
-class RehsponseListView(LoginRequiredMixin, ListView):
-    """All Response View"""
-    template_name = "rehsponse_list.html"
-    login_url = "/login/"
-
-    def get_queryset(self, *args, **kwargs):
-        """Query mixin"""
-        qs = models.Rehsponse.objects.all()
-        query = self.request.GET.get("q", None)
-        if query is not None:
-            qs = qs.filter(
-                Q(rehsponse_text__icontains=query) |
-                Q(user_profile__first_name__icontains=query) |
-                Q(user_profile__last_name__icontains=query)
-            )
-        return qs
-
-    def get_context_data(self, *, object_list=None, **kwargs):
-        """Context mixin"""
-        context = super(RehsponseListView, self).get_context_data(object_list=None, **kwargs)
-        context['create_form'] = RehsponseModelForm()
-        context['create_url'] = reverse_lazy('create')
-        return context
 
 
 class AuthView(ListView):

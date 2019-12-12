@@ -13,10 +13,14 @@
             <div id="response-collection"></div>
         </div>
     </div>
+    <div class="row">
+        <a href="#" id="load-more">Load more</a>
+    </div>
 {% endblock %}
 
 {% block script %}
     <script>
+    // get query from url
     function getParameterByName(name, url) {
         if (!url) {
             url = window.location.href;
@@ -30,43 +34,140 @@
     }
 
     $(document).ready(function(){
-        var query = getParameterByName('q');
-        var res_list = [];
-        function parse_rehsponse(){
-            if (res_list.length === 0) {
-                $("#response-collection").append("<p>Nothing Found</p>")
-            } else {
-                $.each(res_list, function (key, val) {
-                    var re_key = key;
-                    var re_content = val.rehsponse_text;
-                    var re_user = val.user_profile.first_name
-                    $("#response-collection").append(
-                        "<p>"+re_content+"<br/>by "+ re_user +"<br/>" + "<a href='#'\"\">View</a></p>"
-                    )
-                })
-            }
+        // global variables
+        let query = getParameterByName('q');
+        let responseCollection = $("#response-collection");
+        let responseList = [];
+        let resCreateForm = $("#res-form");
+        let charsStart = 140;
+        let charsCurrent = 0;
+        resCreateForm.append("<span id='resCharsLeft'>"+ charsStart +"</span>");
+        let nextResponseURL;
 
+        // functions
+        // attach a response on html dom
+        function attachResponse(responseData, prepend){
+            let reContent = responseData.rehsponse_text;
+            let reTimesince = responseData.timesince;
+            let reDateDisplay = responseData.date_display;
+            let reUser = responseData.user_profile.first_name;
+            let responseTag = "<p>"+reContent+"<br/>by "
+                    + reUser
+                    + " | "
+                    + reDateDisplay
+                    + " | "
+                    + reTimesince
+                    + " | "
+                    + "<a href='#'\"\">View</a></p>"
+                    + "<hr/>";
+        if (prepend === true) {
+            responseCollection.prepend(responseTag);
         }
+        else {
+            responseCollection.append(responseTag)
+        }
+    }
+
+        // append or prepend a response
+        function parseResponse(listOfResponse){
+        if (listOfResponse.length === 0) {
+            responseCollection.append("<p>Nothing Found</p>")
+        } else {
+            $.each(listOfResponse, function (key, val) {
+                attachResponse(val, false)
+            })
+        }
+    }
+
+        // api fetch list
+        function getResponse(query, listOfResponse, url) {
+            let fetchURL;
+            if (!url) {
+                fetchURL = '/api/list/'
+            } else {
+                fetchURL = nextResponseURL
+            }
+            $.ajax({
+                url: fetchURL,
+                method: 'GET',
+                data: {'q': query},
+                success: function (data) {
+                    listOfResponse = data.results;
+                    if (data.next){
+                        nextResponseURL = data.next;
+                    } else {
+                        $('#load-more').css('display', 'none');
+                    }
+                    parseResponse(listOfResponse);
+                },
+                error: function (data) {
+                    console.log(data);
+                }
+            });
+        }
+
+        // api create
+        function createResponse(formData, thisForm){
         $.ajax({
-            url: '/api/list',
-            method: 'GET',
-            data: {
-              'q': query
-            },
+            url: '/api/rehsponse/create/',
+            method: 'POST',
+            data: formData,
             success: function (data) {
-                res_list = data;
-                parse_rehsponse();
+                thisForm.find("input[type=text], textarea").val("");
+                attachResponse(data, true);
             },
             error: function (data) {
                 console.log(data);
             }
         });
+    }
 
-        $("#res-form").submit(function(event){
-            var this_ = $(this);
+        getResponse(query,responseList);
+
+        $('#load-more').bind('click', function (event) {
             event.preventDefault();
-            console.log(event);
-            console.log(this_);
+            if (nextResponseURL) {
+                getResponse(query, responseList, nextResponseURL);
+            } else {
+                console.log("No more response");
+            }
+
+        });
+
+        resCreateForm.submit(function(event){
+            event.preventDefault();
+            let this_ = $(this);
+            let formData = this_.serialize();
+            if (charsCurrent >= 0) {
+                createResponse(formData, this_);
+            } else {
+                console.log("Exceeds response length");
+            }
+
+        });
+
+        $("#res-form textarea").keyup(function (event) {
+            let resValue = $(this).val();
+            charsCurrent = charsStart - resValue.length;
+            let spanChars = $("#resCharsLeft");
+            spanChars.text(charsCurrent);
+
+            spanChars.text(charsCurrent);
+            if (charsCurrent > 0) {
+                // remove classes
+                spanChars.removeClass("grey-color");
+                spanChars.removeClass("red-color");
+            } else if (charsCurrent === 0) {
+                // grey class
+                spanChars.removeClass("red-color");
+                spanChars.addClass("grey-color");
+            } else if (charsCurrent < 0) {
+                // red class
+                spanChars.removeClass('grey-color');
+                spanChars.addClass('red-color');
+                // submit button disabled
+            }
+
         })
     })
     </script>

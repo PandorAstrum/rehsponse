@@ -1,4 +1,4 @@
-from django.contrib.auth import get_user_model
+from django.utils.timesince import timesince
 from rest_framework import serializers
 from rehsponse import models
 
@@ -56,19 +56,24 @@ class UserDisplaySerializer(serializers.ModelSerializer):
 
 class RehsponseSerializer(serializers.ModelSerializer):
     """Serialization of Response item"""
-    user_profile = UserDisplaySerializer()
+    user_profile = UserDisplaySerializer(read_only=True)
+    timesince = serializers.SerializerMethodField()
+    date_display = serializers.SerializerMethodField()
     class Meta:
 
         model = models.Rehsponse
-        fields = "__all__"
-        extra_kwargs = {
-            'user_profile': {
-                'read_only': True
-            },
-            'updated_on': {
-                'read_only': True
-            },
-            'created_on': {
-                'read_only': True
-            }
-        }
+        fields = [
+            'user_profile',
+            'rehsponse_text',
+            'updated_on',
+            'created_on',
+            'date_display',
+            'timesince'
+        ]
+
+    def get_date_display(self, obj):
+        return obj.updated_on.strftime("%b %d, %I:%M %p")
+
+
+    def get_timesince(self, obj):
+        return timesince(obj.updated_on) + " ago"
