@@ -6,11 +6,12 @@
         <div class="col-md-12">
             {% if not request.GET.q %}
         <div class="row">
-            {% include "create_rehsponse_form.html" with form=create_form action_url=create_url btn_title="Rehsponse" form_id="res-form"%}
+            {% include "rehsponse/forms/create_rehsponse_form.html" with form=create_form action_url=create_url btn_title="Rehsponse" form_id="res-form"%}
             <hr/>
         </div>
     {% endif %}
-            <div id="response-collection"></div>
+            <div id="response-collection">
+            </div>
         </div>
     </div>
     <div class="row">
@@ -43,6 +44,7 @@
         let charsCurrent = 0;
         resCreateForm.append("<span id='resCharsLeft'>"+ charsStart +"</span>");
         let nextResponseURL;
+        let spanChars = $("#resCharsLeft");
 
         // functions
         // attach a response on html dom
@@ -51,14 +53,18 @@
             let reTimesince = responseData.timesince;
             let reDateDisplay = responseData.date_display;
             let reUser = responseData.user_profile.first_name;
-            let responseTag = "<p>"+reContent+"<br/>by "
+            let reUserUrl = responseData.user_profile.user_url;
+            let responseTag = "<div class='media-body'>"+reContent+"<br/>by <a href='"
+                    + reUserUrl
+                    + "'>"
                     + reUser
+                    + "</a>"
                     + " | "
                     + reDateDisplay
-                    + " | "
+                     + " | "
                     + reTimesince
                     + " | "
-                    + "<a href='#'\"\">View</a></p>"
+                    + "<a href='{ }'\"\">View</a></div>"
                     + "<hr/>";
         if (prepend === true) {
             responseCollection.prepend(responseTag);
@@ -99,6 +105,7 @@
                         $('#load-more').css('display', 'none');
                     }
                     parseResponse(listOfResponse);
+                    updateHashLink();
                 },
                 error: function (data) {
                     console.log(data);
@@ -115,13 +122,23 @@
             success: function (data) {
                 thisForm.find("input[type=text], textarea").val("");
                 attachResponse(data, true);
+                spanChars.text(charsStart);
+                updateHashLink();
             },
             error: function (data) {
                 console.log(data);
             }
         });
     }
-
+        
+        // hashtag
+        function updateHashLink() {
+            $(".media-body").each(function(data){
+                let hashTagRegex = /(^|\s)#([\w\d-]+)/g;
+                let newText = $(this).html().replace(hashTagRegex, "$1<a href='/tags/$2'>#$2</a>");
+                $(this).html(newText);
+            })
+        }
         getResponse(query,responseList);
 
         $('#load-more').bind('click', function (event) {
@@ -143,13 +160,11 @@
             } else {
                 console.log("Exceeds response length");
             }
-
         });
 
         $("#res-form textarea").keyup(function (event) {
             let resValue = $(this).val();
             charsCurrent = charsStart - resValue.length;
-            let spanChars = $("#resCharsLeft");
             spanChars.text(charsCurrent);
 
             spanChars.text(charsCurrent);

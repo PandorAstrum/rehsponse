@@ -39,7 +39,10 @@ class RehsponseListAPIView(generics.ListAPIView):
     pagination_class = pagination.StandardResultsPaginations
 
     def get_queryset(self):
-        qs = models.Rehsponse.objects.all().order_by('-updated_on')
+        # get random response
+        qs1 = models.Rehsponse.objects.all().order_by('-updated_on')
+        qs2 = models.Rehsponse.objects.filter(user_profile=self.request.user)
+        qs = (qs1 | qs2).distinct()
         query = self.request.GET.get("q", None)
         if query is not None:
             qs = qs.filter(

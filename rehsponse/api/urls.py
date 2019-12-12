@@ -4,11 +4,10 @@ from rehsponse.api import views
 
 router = DefaultRouter()
 router.register('user', views.UserProfileViewSets)
-router.register('post', views.PostViewSets)
 
 urlpatterns = [
     path('login/', views.UserLoginApiView.as_view()),
-    # path('', include(router.urls)),
+    path('', include(router.urls)),
     path('list/', views.RehsponseListAPIView.as_view(), name='apilist'),  # api/list api/list/?q=bla (search)
     path('rehsponse/<int:pk>/', views.RehsponseDetailAPIView.as_view(), name="apidetail"),  # api/rehsponse/1
     path('rehsponse/create/', views.RehsponseCreateAPIView.as_view(), name="apicreate"),  # api/rehsponse/create

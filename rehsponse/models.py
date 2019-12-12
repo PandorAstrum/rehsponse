@@ -1,8 +1,9 @@
 from django.db import models
+from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.conf import settings
 from .validator import validate_response
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 
 
 # Create your models here.
@@ -31,21 +32,18 @@ class UserManager(BaseUserManager):
 
 class UserProfile(AbstractBaseUser, PermissionsMixin):
     """Database user profile model in the system"""
-    # GENDER_CHOICES = (
-    #     (1, 'Male'),
-    #     (2, 'Female'),
-    # )
     email = models.EmailField(max_length=255, unique=True)
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     date_of_birth = models.DateField(blank=True, null=True)
+    responded_by = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="responded_to")
     # username = first_name + last_name
     # gender = models.Choices
     short_bio = models.TextField(blank=True, null=True)
     # interest =
     address = models.TextField(blank=True, null=True)
-    city = models.CharField(max_length=255)
-    country = models.CharField(max_length=255)
+    city = models.CharField(max_length=255, blank=True, null=True)
+    country = models.CharField(max_length=255, blank=True, null=True)
     phone = models.IntegerField(blank=True, null=True)
     # user_image = models.ImageField()
     created_on = models.DateTimeField(auto_now_add=True)
@@ -71,6 +69,17 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
         return self.email
 
 
+# class UserProfile(models.Model):
+#     # they response us
+#     response_by = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="responded_to",
+#                                         null=True)
+#     # we response to them
+#     response_to = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="responder")
+#
+#     def __str__(self):
+#         return str(self.response_to.all().count())
+
+
 class Rehsponse(models.Model):
     """Response Model  in the System"""
     user_profile = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -83,5 +92,22 @@ class Rehsponse(models.Model):
         """String representation of profile post"""
         return self.rehsponse_text
 
-    # def get_absolute_url(self):
-    #     return reverse('rehsponse.views.RehsponseDetailView', args=[str(self.id)])
+    class Meta:
+        ordering = ['-updated_on']
+
+    def get_absolute_url(self):
+        return reverse_lazy("detail", kwargs={'pk': self.pk})
+
+
+class HashTag(models.Model):
+    tag = models.CharField(max_length=120)
+    created_on = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.tag
+
+    def get_rehsponse(self):
+        return Rehsponse.objects.filter(rehsponse_text__icontains="#" + self.tag)
+
+    def get_absolute_url(self):
+        return reverse_lazy("hashtag", kwargs={'hashtag': self.tag})

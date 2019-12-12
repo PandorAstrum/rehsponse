@@ -1,9 +1,7 @@
 from django.utils.timesince import timesince
+from django.urls import reverse_lazy
 from rest_framework import serializers
 from rehsponse import models
-
-
-# user = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -40,6 +38,7 @@ class UserSerializer(serializers.ModelSerializer):
 class UserDisplaySerializer(serializers.ModelSerializer):
     """Public Display of user profile"""
     rehsponder_count = serializers.SerializerMethodField()
+    user_url = serializers.SerializerMethodField()
 
     class Meta:
         model = models.UserProfile
@@ -47,11 +46,15 @@ class UserDisplaySerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'city',
+            'user_url',
             'rehsponder_count'
         ]
 
     def get_rehsponder_count(self, obj):
         return 0
+
+    def get_user_url(self, obj):
+        return reverse_lazy('userdetail', kwargs={'username': obj.first_name})
 
 
 class RehsponseSerializer(serializers.ModelSerializer):
@@ -59,8 +62,8 @@ class RehsponseSerializer(serializers.ModelSerializer):
     user_profile = UserDisplaySerializer(read_only=True)
     timesince = serializers.SerializerMethodField()
     date_display = serializers.SerializerMethodField()
-    class Meta:
 
+    class Meta:
         model = models.Rehsponse
         fields = [
             'user_profile',
@@ -73,7 +76,6 @@ class RehsponseSerializer(serializers.ModelSerializer):
 
     def get_date_display(self, obj):
         return obj.updated_on.strftime("%b %d, %I:%M %p")
-
 
     def get_timesince(self, obj):
         return timesince(obj.updated_on) + " ago"

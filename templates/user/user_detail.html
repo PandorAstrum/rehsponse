@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}| User {% endblock %}
+
+{% block content %}
+    <p>{{ object.first_name }} {{ object.last_name }}</p>
+    <p>{{ object.short_bio }}</p>
+    <h1>All Rehsponses</h1>
+    {% for rehsponse in object.rehsponse_set.all %}
+        <p>{{ rehsponse.rehsponse_text }}<br/>
+        {{ rehsponse.created_on|timesince }} ago</p>
+
+    {% endfor %}
+    <h2>Responded/following</h2>
+
+    <h2>Responders/followers</h2>
+    {{ object.responded_by.all.count }}
+    {% for user in object.responded_by.all %}
+        <a href="/user/{{ user.first_name }}" >{{ user.first_name }} </a>
+    {% empty %}
+    <p>No responder Yet</p>
+    {% endfor %}
+{% endblock %}
+
+{% block script %} {% endblock %}

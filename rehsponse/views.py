@@ -1,17 +1,27 @@
 from django.db.models import Q
 from django.urls import reverse_lazy
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
+from django.views import View
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from rehsponse.api import serializers, permission
 from rehsponse import models
 from rehsponse.forms import RehsponseModelForm
 from rehsponse.mixins import FormUserNeededMixin, UserOwnerMixin
 
 
+class UserDetailView(LoginRequiredMixin, DetailView):
+    template_name = "user/user_detail.html"
+    login_url = '/login/'
+
+    def get_object(self, queryset=models.UserProfile):
+        _first_name = self.kwargs.get('username')
+        obj = get_object_or_404(models.UserProfile, first_name__iexact=_first_name)
+        return obj
+
+
 class RehsponseListView(LoginRequiredMixin, ListView):
     """All Response View"""
-    template_name = "rehsponse_list.html"
+    template_name = "rehsponse/rehsponse_list.html"
     login_url = "/login/"
 
     def get_queryset(self, *args, **kwargs):
@@ -37,7 +47,7 @@ class RehsponseListView(LoginRequiredMixin, ListView):
 class RehsponseCreateView(LoginRequiredMixin, FormUserNeededMixin, CreateView):
     """Create A Response"""
     form_class = RehsponseModelForm
-    template_name = "create_rehsponse_form.html"
+    template_name = "rehsponse/forms/create_rehsponse_form.html"
     success_url = "/"
     login_url = "/login/"
 
@@ -49,7 +59,7 @@ class RehsponseCreateView(LoginRequiredMixin, FormUserNeededMixin, CreateView):
 
 class RehsponseDetailView(LoginRequiredMixin, DetailView):
     """A single Response view"""
-    template_name = "rehsponse_detail.html"
+    template_name = "rehsponse/rehsponse_detail.html"
     login_url = "/login/"
 
     def get_object(self, queryset=models.Rehsponse):
@@ -62,15 +72,21 @@ class RehsponseUpdateView(LoginRequiredMixin, UserOwnerMixin, UpdateView):
     """Edit a response"""
     queryset = models.Rehsponse.objects.all()
     form_class = RehsponseModelForm
-    template_name = "update_rehsponse_form.html"
+    template_name = "rehsponse/forms/update_rehsponse_form.html"
     success_url = '/'
 
 
 class RehsponseDeleteView(LoginRequiredMixin, UserOwnerMixin, DeleteView):
     """Delete a Response"""
     model = models.Rehsponse
-    template_name = "delete_rehsponse_form.html"
+    template_name = "rehsponse/forms/delete_rehsponse_form.html"
     success_url = reverse_lazy("home")
+
+
+class HashTagView(View):
+    def get(self, request, hashtag, *args, **kwargs):
+        obj, created = models.HashTag.objects.get_or_create(tag=hashtag)
+        return render(request, 'hashtags/tag_view.html', {'obj': obj})
 
 
 class AuthView(ListView):
