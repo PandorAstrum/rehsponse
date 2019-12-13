@@ -2,6 +2,7 @@ from django.db.models import Q
 from rest_framework import status, viewsets, filters
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.generics import get_object_or_404
 from rest_framework.settings import api_settings
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics
@@ -85,6 +86,30 @@ class RehsponseDeleteAPIView(generics.DestroyAPIView):
 class ContactListAPIView(generics.ListAPIView):
     queryset = models.Contact.objects.all()
     serializer_class = serializers.ContactSerializer
+
+
+class HashTagListAPIView(generics.ListAPIView):
+    """Handles Response for hash tag"""
+    serializer_class = serializers.HashTagSerializer
+
+    def get_queryset(self):
+        """
+        This view should return a list of all the purchases
+        for the currently authenticated user.
+        """
+        return models.HashTag.objects.all().order_by('-created_on')[:10]
+
+
+class UserDetailAPIView(generics.RetrieveAPIView):
+    """User Detail view """
+    serializer_class = serializers.UserSerializer
+    pagination_class = pagination.StandardResultsPaginations
+    # queryset = models.UserProfile.objects.all()
+
+    def get_object(self, queryset=models.UserProfile):
+        _first_name = self.kwargs.get('username')
+        obj = get_object_or_404(models.UserProfile, first_name__iexact=_first_name)
+        return obj
 
 
 class PostViewSets(viewsets.ModelViewSet):

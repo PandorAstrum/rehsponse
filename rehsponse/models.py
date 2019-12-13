@@ -82,7 +82,7 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
 
 class Rehsponse(models.Model):
     """Response Model  in the System"""
-    user_profile = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user_profile = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='poster')
     rehsponse_text = models.TextField(max_length=140, validators=[validate_response])
     # post_image = models.ImageField()
     updated_on = models.DateTimeField(auto_now=True)
@@ -109,8 +109,8 @@ class HashTag(models.Model):
     def get_rehsponse(self):
         return Rehsponse.objects.filter(rehsponse_text__icontains="#" + self.tag)
 
-    def get_absolute_url(self):
-        return reverse_lazy("hashtag", kwargs={'hashtag': self.tag})
+    # def get_absolute_url(self):
+    #     return reverse_lazy("hashtag", kwargs={'hashtag': self.tag})
 
 
 class Contact(models.Model):

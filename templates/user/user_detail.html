@@ -1,25 +1,86 @@
 {% extends 'base.html' %}
-
-{% block title %}| User {% endblock %}
+{% load static %}
+{% block title %}{{ block.super }} | User Profile {% endblock %}
 
 {% block content %}
-    <p>{{ object.first_name }} {{ object.last_name }}</p>
-    <p>{{ object.short_bio }}</p>
-    <h1>All Rehsponses</h1>
-    {% for rehsponse in object.rehsponse_set.all %}
-        <p>{{ rehsponse.rehsponse_text }}<br/>
-        {{ rehsponse.created_on|timesince }} ago</p>
+    <div class="row pt-3">
+        <div class="col-xl-4 mt-xl-auto mb-xl-auto col-lg-4 text-center mt-lg-auto mb-lg-auto mt-md-auto mb-md-auto col-md-4 col-sm-4">
+            <div class="shadow justify-content-center align-items-center d-inline-flex flex-column pb-2 pt-2 pl-4 pr-4">
+                <h6>0</h6>
+                <br/>
+                <h6>Total Post</h6>
+            </div>
+        </div>
+        <div class="col-xl-4 text-center mt-xl-auto mb-xl-auto col-lg-4 col-md-4 col-sm-4">
+            <img class="img-thumbnail" src="{% static 'assets/img/user-profile-svgrepo-com.svg' %}" alt="user_photo" width="140" height="140">
+            <h5 class="pt-3 pt-lg-2 pt-md-1" id="username"></h5>
+        </div>
+        <div class="col-xl-4 mt-xl-auto mb-xl-auto col-lg-4 text-center mt-lg-auto mb-lg-auto mt-md-auto mb-md-auto col-md-4 col-sm-4">
+            <div class="shadow justify-content-center align-items-center d-inline-flex flex-column pb-2 pt-2 pl-4 pr-4">
+                <h6>0</h6>
+                <br/>
+                <h6>Total Responders</h6>
+            </div>
+        </div>
+    </div>
+    <div class="row pt-3">
+        <table class="table table-sm table-hover table-striped">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>All Posts</th>
+                    <th>Responders</th>
+                    <th>Love Count</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
 
-    {% endfor %}
-    <h2>Responded/following</h2>
+            <tbody id="response-container">
+            </tbody>
+        </table>
+    </div>
 
-    <h2>Responders/followers</h2>
-    {{ object.responded_by.all.count }}
-    {% for user in object.responded_by.all %}
-        <a href="/user/{{ user.first_name }}" >{{ user.first_name }} </a>
-    {% empty %}
-    <p>No responder Yet</p>
-    {% endfor %}
 {% endblock %}
 
-{% block script %} {% endblock %}
+{% block script %}
+    <script>
+    $(document).ready(function(){
+        let req_url = '/api/user/' + 'first' + '/';
+        console.log(req_url);
+        $.ajax({
+            url: req_url,
+            method: 'GET',
+            success:function(obj){
+                // update profile
+                let firstName = obj.first_name;
+                let lastName = obj.last_name;
+                let bio = obj.short_bio;
+                $('#username').text(firstName + " " + lastName);
+                let counter = 1;
+                $.each(obj.poster, function (key, val) {
+                    {#console.log(val);#}
+                    let postNumber = counter;
+                    let postText = val.rehsponse_text;
+                    let postResponders;
+                    let postLovers;
+                    let postUrl = val.own_url;
+                    let postDate = val.date_display;
+                    let tableTemplate = `<tr>
+                    <th scope="row">${counter}</th>
+                    <td><a href="${postUrl}">${postText}</a></td>
+                    <td>21 Users</td>
+                    <td>5 Users</td>
+                    <td>${postDate}</td>
+                </tr>`;
+                    $('#response-container').append(tableTemplate);
+                    counter ++;
+                });
+
+            },
+            error:function(e){
+                console.log(e);
+            }
+        })
+    });
+    </script>
+{% endblock %}
