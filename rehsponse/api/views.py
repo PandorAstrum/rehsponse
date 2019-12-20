@@ -3,15 +3,18 @@ from rest_framework import status, viewsets, filters
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.generics import get_object_or_404
+from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics
+from rest_framework.views import APIView
+
 from rehsponse.api import serializers, permission
 from rehsponse import models
 from rehsponse.api import pagination
 
 
-# Create your views here.
+# USER ACCOUNT ==================================================
 class UserLoginApiView(ObtainAuthToken):
     """Handle creating user authentication tokens"""
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
@@ -26,25 +29,37 @@ class UserProfileViewSets(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('first_name', 'last_name', 'email', )
 
-# user detail view
-# class UserDetailAPIView(generics.Deta)
-class UserPasswordChange():
-    """Handles request for password change"""
-    pass
+
+class LoveToggleAPIView(APIView):
+    """Love Toggle Endpoints"""
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, pk, format=None):
+        rehsponse_qs = models.Rehsponse.objects.filter(pk=pk)
+        message = "Not Allowed"
+        if request.user.is_authenticated:
+            is_loved = models.Rehsponse.objects.love_toggle(request.user, rehsponse_qs.first())
+            return Response({'loved': is_loved})
+        return Response({'message': message}, status=400)
 
 
-# list response
+# REHSPONSES ====================================================
 class RehsponseListAPIView(generics.ListAPIView):
-    """Get all list of response"""
-    serializer_class = serializers.RehsponseSerializer
+    """Get all list of response (RETRIEVE ALL)"""
+    # authentication_classes = (TokenAuthentication,)
+    serializer_class = serializers.RehsponseDetailSerializer
     pagination_class = pagination.StandardResultsPaginations
-    # authentication_classes = (TokenAuthentication,) attach header token before ajax request
+
+    def get_serializer_context(self, *args, **kwargs):
+        context = super(RehsponseListAPIView, self).get_serializer_context(*args, **kwargs)
+        context['request'] = self.request
+        return context
 
     def get_queryset(self):
         # get random response
-        qs1 = models.Rehsponse.objects.all().order_by('-updated_on')
         qs2 = models.Rehsponse.objects.filter(user_profile=self.request.user)
-        qs = (qs1 | qs2).distinct()
+        qs3 = models.Rehsponse.objects.filter(replying_to_id=None)
+        qs = (qs2 | qs3).distinct()
         query = self.request.GET.get("q", None)
         if query is not None:
             qs = qs.filter(
@@ -55,32 +70,31 @@ class RehsponseListAPIView(generics.ListAPIView):
         return qs
 
 
-# create response
-class RehsponseCreateAPIView(generics.CreateAPIView):
-    """Create a response"""
-    serializer_class = serializers.RehsponseSerializer
+class RehsponseDetailAPIView(generics.RetrieveAPIView):
+    """Get a single rehsponses (RETRIEVE SINGLE)"""
     # authentication_classes = (TokenAuthentication,)
+    serializer_class = serializers.RehsponseDetailSerializer
+    queryset = models.Rehsponse.objects.all()
+
+
+class RehsponseCreateAPIView(generics.CreateAPIView):
+    """Create a response (CREATE)"""
+    # authentication_classes = (TokenAuthentication,)
+    serializer_class = serializers.RehsponseDetailSerializer
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
         serializer.save(user_profile=self.request.user)
 
 
-# retrieve
-class RehsponseDetailAPIView(generics.RetrieveAPIView):
-    serializer_class = serializers.RehsponseSerializer
-    queryset = models.Rehsponse.objects.all()
-
-
-# update
 class RehsponseUpdateAPIView(generics.UpdateAPIView):
-    serializer_class = serializers.RehsponseSerializer
+    # authentication_classes = (TokenAuthentication,)
+    serializer_class = serializers.RehsponseDetailSerializer
     queryset = models.Rehsponse.objects.all()
 
 
-# delete
 class RehsponseDeleteAPIView(generics.DestroyAPIView):
-    serializer_class = serializers.RehsponseSerializer
+    serializer_class = serializers.RehsponseDetailSerializer
 
 
 class ContactListAPIView(generics.ListAPIView):
@@ -88,33 +102,52 @@ class ContactListAPIView(generics.ListAPIView):
     serializer_class = serializers.ContactSerializer
 
 
+# HASHTAGS ======================================================
 class HashTagListAPIView(generics.ListAPIView):
-    """Handles Response for hash tag"""
+    """Get all list of hash tags (RETRIEVE ALL) Limit to only 10 in negative date order"""
     serializer_class = serializers.HashTagSerializer
 
     def get_queryset(self):
-        """
-        This view should return a list of all the purchases
-        for the currently authenticated user.
-        """
+        """Query mixin"""
         return models.HashTag.objects.all().order_by('-created_on')[:10]
 
 
 class UserDetailAPIView(generics.RetrieveAPIView):
-    """User Detail view """
+    """User Detail view"""
+    permission_classes = (IsAuthenticated,)
     serializer_class = serializers.UserSerializer
-    pagination_class = pagination.StandardResultsPaginations
-    # queryset = models.UserProfile.objects.all()
 
     def get_object(self, queryset=models.UserProfile):
-        _first_name = self.kwargs.get('username')
-        obj = get_object_or_404(models.UserProfile, first_name__iexact=_first_name)
+        _user_name = self.kwargs.get('username')
+        obj = get_object_or_404(models.UserProfile, username__iexact=_user_name)
+        return obj
+
+
+class UserCreateAPIView(generics.CreateAPIView):
+    """User Detail view"""
+    permission_classes = (IsAuthenticated,)
+    serializer_class = serializers.UserSerializer
+
+    def get_object(self, queryset=models.UserProfile):
+        _user_name = self.kwargs.get('username')
+        obj = get_object_or_404(models.UserProfile, username__iexact=_user_name)
+        return obj
+
+
+class UserListAPIView(generics.ListAPIView):
+    """User Detail view"""
+    permission_classes = (IsAuthenticated,)
+    serializer_class = serializers.UserSerializer
+
+    def get_object(self, queryset=models.UserProfile):
+        _user_name = self.kwargs.get('username')
+        obj = get_object_or_404(models.UserProfile, username__iexact=_user_name)
         return obj
 
 
 class PostViewSets(viewsets.ModelViewSet):
     """Handles Response from users"""
-    serializer_class = serializers.RehsponseSerializer
+    serializer_class = serializers.RehsponseDetailSerializer
     queryset = models.Rehsponse.objects.all()
     authentication_classes = (TokenAuthentication,)
     permission_classes = (

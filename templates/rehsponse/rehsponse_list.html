@@ -1,236 +1,135 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %} {{block.super}} | Home {% endblock %}
+{% block modal %}
+    {% include 'rehsponse/modals/reply_modal.html' %}
+    {% include 'rehsponse/modals/update_modal.html' %}
+{% endblock %}
+
 {% block content %}
     <div class="row pt-3" data-pg-collapsed>
         <div class="col-md-2 text-center shadow pt-3" data-pg-collapsed>
-            <a href="{% url 'userdetail' username=request.user.first_name %}">
+            <a href="{% url 'userdetail' username=request.user.username %}">
                 <img class="w-200 img-thumbnail rounded-circle mx-auto shadow-sm" src="{% static 'assets/img/user-profile-svgrepo-com.svg' %}" width="140" height="140" alt="{{ request.user.first_name}}_photo">
             </a>
-            <h5 class="font-weight-bold pt-3" >{{request.user.first_name}} {{ request.user.last_name }}</h5>
-            <h6><small>Joined: {{request.user.created_on}}</small></h6>
+            <h5 class="font-weight-bold pt-3" >{{request.user.first_name }} {{ request.user.last_name }}</h5>
+            <h6><small>Joined: {{request.user.created_on }}</small></h6>
         </div>
         <div class="col-md-8 pb-4">
             {% if not request.GET.q %}
-            {% include "rehsponse/forms/create_rehsponse_form.html" with form=create_form action_url=create_url btn_title="Rehsponse" form_id="res-form"%}
+            {% include "rehsponse/forms/create_rehsponse_form.html"%}
             <hr/>
             {% endif %}
             <div id="response-container">
 
             </div>
-            <div class="row pr-2 ">
-                <div class="col-md-12 col-xl-12 text-center">
-                    <a href="#" id="load-more" ><span class="font-weight-bold">Load More</span></a>
-                </div>
-            </div>
-
-    </div>
+            {% include "loadmore.html" %}
+        </div>
         <div class="col-md-2 shadow pt-3">
         <h5 class="font-weight-bold">Latest Tags</h5>
         <hr/>
             <div id="tag-container">
             </div>
 
-    </div>
-
-
+        </div>
     </div>
 {% endblock %}
 
 {% block script %}
     <script>
-    // get query from url
-    function getParameterByName(name, url) {
-        if (!url) {
-            url = window.location.href;
-        }
-        name = name.replace(/[\[\]]/g, "\\$&");
-        var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-            results = regex.exec(url);
-        if (!results) return null;
-        if (!results[2]) return '';
-        return decodeURIComponent(results[2].replace(/\+/g, " "));
-    }
-
     $(document).ready(function(){
+
         // global variables
         let query = getParameterByName('q');
+        let responseList;
+        let originalPostCounter = 0;
+        let spanChars;
+        let reResponseId;
         let responseCollection = $("#response-container");
-        let responseList = [];
-        let resCreateForm = $("#res-form");
+        let tagCollection = $('#tag-container');
+        let replyTextArea = $("#reply-modal textarea");
+        let replyFormModal = $("#reply-modal");
+        let updateFormModal = $("#update-response-modal");
+        let updateForm = $(".update-response-form");
+        let updateTextArea = $("#update-response-modal textarea");
+        let resCreateForm = $(".res-form");
         let charsStart = 140;
         let charsCurrent = 0;
         resCreateForm.append("<h7><small class=\"font-weight-bold\" id='resCharsLeft'>" + charsStart + "</small></h7><small> characters left</small>");
         let nextResponseURL;
-        let spanChars = $("#resCharsLeft");
+        let loadBtn = $("#load-more");
 
         // functions
-        // attach a response on html dom
-        function attachResponse(responseData, prepend){
-            let reContent = responseData.rehsponse_text;
-            let reTimesince = responseData.timesince;
-            let reDateDisplay = responseData.date_display;
-            let reUser = responseData.user_profile.first_name;
-            let reUserUrl = responseData.user_profile.user_url;
-            let reUrl = responseData.own_url;
-            let responseTag =
-                `<div class="row pr-2">
-                <div class="col-md-2 text-right col-xl-2 text-sm-center">
-                <img src="{% static 'assets/img/user-profile-svgrepo-com.svg' %}"  class=" img-thumbnail rounded-circle" alt="user_photo" width="56" height="56"/>
-                </div>
-                <div class="col-md-10">
-                    <div class="row">
-                        <div class="col-xl-6 text-left text-sm-center text-lg-left col-lg-6">
-                            <span><a href="${reUserUrl}">@${reUser}</a></span>
-                        </div>
-                        <div class="col-xl-6 text-right text-sm-center col-lg-6 text-lg-right">
-                            <small>at ${reDateDisplay} (${reTimesince})</small>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <span class="media-body">${reContent}</span>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mt-auto mb-auto pt-xl-auto mb-xl-auto text-sm-center col-lg-6 text-lg-left">
-                            <small><i class="fas fa-bullhorn"></i> 9 responses | <i class="fas fa-heart"></i> 11 loves </small>
-                        </div>
-                        <div class="btn-group btn-group-sm col-md-6 col-xl-6" role="group" aria-label="Basic example">
-                            <button type="button" class="btn btn-secondary">
-                                <i class="fas fa-bullhorn"></i> Rehspond
-                            </button>
-                            <button type="button" class="btn btn-secondary">
-                                <i class="fas fa-heart"></i> Love
-                            </button>
-                            <button type="button" class="btn btn-secondary">
-                                <i class="fas fa-pencil-alt"></i> Edit
-                            </button>
-                         </div>
-                    </div>
-                    <hr/>
-                </div>
-            </div>`;
-        if (prepend === true) {
-            responseCollection.prepend(responseTag);
-        }
-        else {
-            responseCollection.append(responseTag)
-        }
-    }
 
-        // append or prepend a response
-        function parseResponse(listOfResponse){
-        if (listOfResponse.length === 0) {
-            responseCollection.append("<p>Nothing Found</p>")
-        } else {
-            $.each(listOfResponse, function (key, val) {
-                attachResponse(val, false)
-            })
-        }
-    }
-
-        // api fetch list
-        function getResponse(query, listOfResponse, url) {
-            let fetchURL;
-            if (!url) {
-                fetchURL = '/api/list/'
-            } else {
-                fetchURL = nextResponseURL
-            }
-            $.ajax({
-                url: fetchURL,
-                method: 'GET',
-                data: {'q': query},
-                success: function (data) {
-                    listOfResponse = data.results;
-                    if (data.next){
-                        nextResponseURL = data.next;
-                    } else {
-                        $('#load-more').css('display', 'none');
+        // load more button
+        function loadMore(loadBtn, nextResponseUrl){
+            // if next responseURL display or display non
+            loadBtn.bind("click", function(e){
+               e.preventDefault();
+               $.getRequest(nextResponseUrl, null, function(jqXHR, textStatus){
+                   if (jqXHR.status === 200) {
+                        responseList = jqXHR.responseJSON.results;
+                        if (jqXHR.responseJSON.next){
+                            nextResponseUrl = jqXHR.responseJSON.next;
+                        } else {
+                            loadBtn.css('display', 'none');
+                        }
+                        parseResponse(responseList);
+                        updateHashLinkInHTML($(".media-body"));
                     }
-                    parseResponse(listOfResponse);
-                    updateHashLink();
-                },
-                error: function (data) {
-                    console.log(data);
-                }
+               });
             });
         }
 
-        // api create
-        function createResponse(formData, thisForm){
-        $.ajax({
-            url: '/api/rehsponse/create/',
-            method: 'POST',
-            data: formData,
-            success: function (data) {
-                thisForm.find("input[type=text], textarea").val("");
-                attachResponse(data, true);
-                spanChars.text(charsStart);
-                updateHashLink();
-            },
-            error: function (data) {
-                console.log(data);
-            }
-        });
-    }
-        
-        // hash tag
-        function updateHashLink() {
-            $(".media-body").each(function(data){
-                let hashTagRegex = /(^|\s)#([\w\d-]+)/g;
-                let newText = $(this).html().replace(hashTagRegex, "$1<a href='/tags/$2'>#$2</a>");
-                $(this).html(newText);
-            })
-        }
-
-        // fetch hash tag from api
-        function getHashTag() {
-            $.ajax({
-                url: '/api/hashtag/',
-                method: 'GET',
-                success: function(data){
-                    $.each(data , function(key, val){
-                        let tagTitle = val.tag;
-                        let tagUrl = val.tag_url;
-                        let tagTemplate = `<a href="${tagUrl}"><span>#${tagTitle}</span><br/></a>`;
-                        $('#tag-container').append(tagTemplate);
-                    });
-
-                },
-                error:function(e){
-                    console.log(e);
-                }
-            })
-        }
-
-        getResponse(query,responseList);
-
-        getHashTag();
-
-        $('#load-more').bind('click', function (event) {
-            event.preventDefault();
-            if (nextResponseURL) {
-                getResponse(query, responseList, nextResponseURL);
-            } else {
-                console.log("No more response");
-            }
-
-        });
-
+        // create form
         resCreateForm.submit(function(event){
             event.preventDefault();
             let this_ = $(this);
             let formData = this_.serialize();
+
             if (charsCurrent >= 0) {
-                createResponse(formData, this_);
+                // create post response
+                $.postRequest(responseCreateAPI, formData, function(jqXHR, textSTatus){
+                    this_.find("input[type=text], textarea").val("");
+                    attachResponse(jqXHR.responseJSON, true, reResponseId);
+                    spanChars.text(charsStart);
+                    updateHashLinkInHTML($(".media-body"));
+                    replyFormModal.modal("hide");
+                });
             } else {
                 console.log("Exceeds response length");
             }
         });
 
-        $("#res-form textarea").keyup(function (event) {
+        // update form
+        updateForm.submit(function(event){
+            event.preventDefault();
+            let this_ = $(this);
+            let formData = this_.serialize();
+            let reId = $("input#hidden-response-update[type='hidden']").val();
+            let responseEditAPI = responseDetailAPI + reId + "/edit";
+            console.log(formData);
+            if (charsCurrent >= 0) {
+                // create post response
+                $.patchRequest(responseEditAPI, formData, function(jqXHR, textSTatus){
+
+                    updateTextArea.val("");
+                    //attachResponse(jqXHR.responseJSON, true, reResponseId);
+                    //spanChars.text(charsStart);
+                    //updateHashLinkInHTML($(".media-body"));
+                    updateFormModal.modal("hide");
+                });
+            //} else {
+                //console.log("Exceeds response length");
+            }
+        });
+
+        // key event on create form
+        $(".res-form textarea").keyup(function (event) {
             let resValue = $(this).val();
             charsCurrent = charsStart - resValue.length;
+            spanChars = $(this).parent().parent().find("small#resCharsLeft");
+
             spanChars.text(charsCurrent);
             if (charsCurrent > 0) {
                 // remove classes
@@ -246,8 +145,189 @@
                 spanChars.addClass('red-color');
                 // submit button disabled
             }
+        });
 
-        })
+        // Respond button
+        $(document.body).on('click', "#response", function(e){
+            e.preventDefault();
+            let thisBtn = $(this);
+            let reId = thisBtn.attr("data-id");
+            let reUser = thisBtn.attr("data-user");
+            reResponseId = thisBtn.attr("data-response-id");
+            $("#reply-label").text(`Respond to @${reUser}`);
+            replyFormModal.modal();
+
+            replyFormModal.on("shown.bs.modal", function(){
+                $("input#hidden-reply[type='hidden']").val(reId);
+            });
+            replyFormModal.on("hide.bs.modal", function(){
+                replyTextArea.val('');
+                if (spanChars) {
+                    spanChars.text(charsStart);
+                }
+            });
+        });
+
+        // love button
+        $(document.body).on('click', "#love", function(e){
+            e.preventDefault();
+            let thisBtn = $(this);
+            let reId = thisBtn.attr("data-id");
+            let reLoveId = thisBtn.attr("data-love-id");
+            let loveText = document.getElementById(reLoveId);
+            let loveAPI = "/api/rehsponse/" + reId + "/loved/";
+            let currLoveCount = parseInt(loveText.textContent.split(' ')[1]);
+            $.getRequest(loveAPI, null, function(jqXHR, textStatus){
+                if (jqXHR.status === 200) {
+                    if (jqXHR.responseJSON.loved) {
+                        thisBtn.html("<i class=\"fas fa-heart\"></i> Loved");
+                        currLoveCount++;
+                        loveText.innerHTML = `<i class=\"fas fa-heart\"></i> ${currLoveCount} loves `;
+                    } else {
+                        thisBtn.html("<i class=\"fas fa-heart\"></i> Love");
+                        currLoveCount--;
+                        loveText.innerHTML = `<i class=\"fas fa-heart\"></i> ${currLoveCount} loves `;
+                    }
+                }
+            });
+        });
+
+        // view button
+        $(document.body).on('click', "#view", function(e){
+            e.preventDefault();
+            let thisBtn = $(this);
+            let dataId = thisBtn.attr("data-id");
+            window.location.href = `/rehsponse/${dataId}`;
+            return false;
+        });
+
+        // edit button
+        $(document.body).on('click', "#edit", function(e){
+            e.preventDefault();
+            let thisBtn = $(this);
+            let reId = thisBtn.attr("data-id");
+            // pop up form modal
+            updateFormModal.modal();
+
+            updateFormModal.on("shown.bs.modal", function(){
+                $("input#hidden-response-update[type='hidden']").val(reId);
+            });
+            updateFormModal.on("hide.bs.modal", function(){
+                updateTextArea.val('');
+            });
+        });
+
+        // formatting response with a template
+        function formatResponse(responseData){
+            let verb = "Love";
+            if (responseData.did_love) {
+                verb = "Loved";
+            }
+            let finalTemplate;
+            let containerStart =
+                `<div class="row pr-2">
+                    <div class="col-md-2 text-right col-xl-2 text-sm-center">
+                        <img src="{% static 'assets/img/user-profile-svgrepo-com.svg' %}"  class=" img-thumbnail rounded-circle" alt="user_photo" width="56" height="56"/>
+                    </div>`;
+            let bodyTemplate =
+                `<div class="col-md-10">
+                    <div class="row">
+                        <div class="col-xl-6 text-left text-sm-center text-lg-left col-lg-6">
+                            <span>@<a href="${responseData.user_profile.user_url}">${responseData.user_profile.first_name}</a></span>
+                        </div>
+                        <div class="col-xl-6 text-right text-sm-center col-lg-6 text-lg-right">
+                            <small>at ${responseData.date_display} (${responseData.timesince})</small>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <span class="media-body">${responseData.rehsponse_text}</span>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mt-auto mb-auto pt-xl-auto mb-xl-auto text-sm-center col-lg-6 text-lg-left">
+                            <small id="response-text-${responseData.id}"><i class="fas fa-bullhorn"></i> ${responseData.reply_count} responses</small> | <small id="love-text-${responseData.id}"><i class="fas fa-heart"></i> ${responseData.love_count} loves </small>
+                        </div>
+                        <div class="btn-group btn-group-sm col-md-6 col-xl-6" role="group" aria-label="Basic example">
+                            <button type="button" class="btn btn-secondary" id="response" data-id="${responseData.id}" data-user="${responseData.user_profile.first_name}" data-response-id="response-text-${responseData.id}">
+                                <i class="fas fa-bullhorn"></i> Rehspond
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="love" data-id="${responseData.id}" data-love-id="love-text-${responseData.id}">
+                                <i class="fas fa-heart"></i> ${verb}
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="view" data-id="${responseData.id}"">
+                                <i class="fas fa-eye"></i> View
+                            </button>`;
+            let optionalTemplate = `<button type="button" class="btn btn-secondary" id="edit" data-id="${responseData.id}" data-user="${responseData.user_profile.first_name}"><i class="fas fa-pencil-alt"></i> Edit</button>`;
+            let containerEnd = `</div></div><hr/></div></div>`;
+            let userName = "{{ request.user.username }}";
+            console.log(userName);
+            if (responseData.user_profile.username === userName) {
+                finalTemplate = containerStart + bodyTemplate + optionalTemplate + containerEnd;
+            } else {
+                finalTemplate = containerStart + bodyTemplate + containerEnd;
+            }
+            return finalTemplate;
+
+        }
+
+        // attach a response on html dom
+        function attachResponse(responseData, prepend, btnId){
+            // if respondData has id associates increase counter
+            if (responseData.replying_to_id) {
+                if (btnId) {
+                    let responseText = document.getElementById(btnId);
+                    let currResCount = parseInt(responseText.textContent.split(' ')[1]);
+                    currResCount++;
+                    responseText.innerHTML = `<i class=\"fas fa-bullhorn\"></i> ${currResCount} responses `;
+                }
+            } else {
+
+                if (prepend === true) {
+                    responseCollection.prepend(formatResponse(responseData));
+                } else {
+                    responseCollection.append(formatResponse(responseData))
+                }
+            }
+        }
+
+        // append or prepend a response
+        function parseResponse(listOfResponse){
+            if (listOfResponse.length === 0) {
+                responseCollection.append("<p>Nothing Found</p>")
+            } else {
+                $.each(listOfResponse, function (key, val) {
+                    if (!val.replying_to_id) {
+                        originalPostCounter++;
+                        attachResponse(val, false, reResponseId)
+                    }
+                });
+            }
+        }
+
+        // fetch response list 10 at a time
+        $.getRequest(responseListAPI, query, function(jqXHR, textStatus){
+            if (jqXHR.status === 200) {
+                responseList = jqXHR.responseJSON.results;
+                if (jqXHR.responseJSON.next){
+                    nextResponseURL = jqXHR.responseJSON.next;
+                    loadMore(loadBtn, nextResponseURL);
+                } else {
+                    loadBtn.css('display', 'none');
+                }
+                parseResponse(responseList);
+                updateHashLinkInHTML($(".media-body"));
+            }
+        });
+
+        // fetch tag in reverse order (max=10)
+        $.getRequest(hashTagListAPI, null, function(jqXHR, textStatus){
+            if (jqXHR.status === 200) {
+                $.each(jqXHR.responseJSON , function(key, val){
+                    let tagTemplate = `<a href="${val.tag_url}"><span>#${val.tag}</span><br/></a>`;
+                    tagCollection.append(tagTemplate);
+                });
+            }
+        });
+        flushingFooter();
     })
     </script>
 {% endblock %}

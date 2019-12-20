@@ -4,39 +4,32 @@ from rest_framework import serializers
 from rehsponse import models
 
 
-class UserDisplaySerializer(serializers.ModelSerializer):
-    """Public Display of user profile"""
-    rehsponder_count = serializers.SerializerMethodField()
-    post_count = serializers.SerializerMethodField()
+class UserSimplified(serializers.ModelSerializer):
+    """Public Display of user profile simplified"""
     user_url = serializers.SerializerMethodField()
 
     class Meta:
         model = models.UserProfile
         fields = [
+            'id',
             'first_name',
             'last_name',
             'city',
             'user_url',
-            'rehsponder_count',
-            'post_count'
         ]
 
-    def get_rehsponder_count(self, obj):
-        return 0
-
     def get_user_url(self, obj):
-        return reverse_lazy('userdetail', kwargs={'username': obj.first_name})
-
-    def get_post_count(self, obj):
-        return 0
+        return reverse_lazy('userdetail', kwargs={'username': obj.username})
 
 
 class RehsponseSerializer(serializers.ModelSerializer):
-    """Serialization of Response item"""
-    user_profile = UserDisplaySerializer(read_only=True)
-    timesince = serializers.SerializerMethodField()
-    date_display = serializers.SerializerMethodField()
+    """Serialization of Response item (Default)"""
+    user_profile = UserSimplified(read_only=True)
+    love_count = serializers.SerializerMethodField()
+    did_love = serializers.SerializerMethodField()
+    reply_count = serializers.SerializerMethodField()
     own_url = serializers.SerializerMethodField()
+    timesince = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Rehsponse
@@ -44,12 +37,113 @@ class RehsponseSerializer(serializers.ModelSerializer):
             'id',
             'user_profile',
             'rehsponse_text',
-            'updated_on',
+            'rehsponse_image',
+            'love_count',
+            'did_love',
+            'reply',
+            'reply_count',
+            'own_url',
+            'timesince',
+            'updated_on'
+        ]
+
+    def get_love_count(self, obj):
+        return obj.loved.all().count()
+
+    def get_did_love(self, obj):
+        request = self.context.get("request")
+        user = request.user
+        if user.is_authenticated:
+            if user in obj.loved.all():
+                return True
+        return False
+
+    def get_own_url(self, obj):
+        return reverse_lazy('detail', kwargs={'pk': obj.id})
+
+    def get_timesince(self, obj):
+        return timesince(obj.updated_on) + " ago"
+
+    def get_reply_count(self, obj):
+        if obj.replying_to:
+            return obj.children().count()
+        return 0
+
+
+class RehsponseChildSerializer(serializers.ModelSerializer):
+    """Serialization of Response item (Reply)"""
+    user_profile = UserSimplified(read_only=True)
+    timesince = serializers.SerializerMethodField()
+    love_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.Rehsponse
+        fields = [
+            'id',
+            'user_profile',
+            'rehsponse_text',
+            'rehsponse_image',
+            'love_count',
+            'timesince',
             'created_on',
+        ]
+
+    def get_love_count(self, obj):
+        return obj.loved.all().count()
+
+    def get_timesince(self, obj):
+        return timesince(obj.updated_on) + " ago"
+
+
+class RehsponseDetailSerializer(serializers.ModelSerializer):
+    """Serialization of Response item (Parent)"""
+    user_profile = UserSimplified(read_only=True)
+    love_count = serializers.SerializerMethodField()  # total love count for this post
+    did_love = serializers.SerializerMethodField()  # the user did love already
+    reply_count = serializers.SerializerMethodField()   # total reply count
+    replying_to_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    all_replies = serializers.SerializerMethodField()
+    timesince = serializers.SerializerMethodField()     # custom date
+    date_display = serializers.SerializerMethodField()  # custom date
+    own_url = serializers.SerializerMethodField()       # view url
+
+    class Meta:
+        model = models.Rehsponse
+        fields = [
+            'replying_to_id',
+            'id',
+            'user_profile',
+            'rehsponse_text',
+            'rehsponse_image',
+            'love_count',
+            'did_love',
+            'reply_count',
+            'all_replies',
             'date_display',
             'timesince',
-            'own_url'
+            'own_url',
         ]
+
+    def get_all_replies(self, obj):
+        if obj.is_replying_to:
+            return RehsponseChildSerializer(obj.children(), many=True).data
+        return None
+
+    def get_reply_count(self, obj):
+        if obj.is_replying_to:
+            return obj.children().count()
+        return 0
+
+    def get_did_love(self, obj):
+        request = self.context.get("request")
+        user = request.user
+        if user.is_authenticated:
+            if user in obj.loved.all():
+                return True
+        return False
+
+    def get_love_count(self, obj):
+        return obj.loved.all().count()
 
     def get_date_display(self, obj):
         return obj.updated_on.strftime("%b %d, %I:%M %p")
@@ -61,35 +155,30 @@ class RehsponseSerializer(serializers.ModelSerializer):
         return reverse_lazy('detail', kwargs={'pk': obj.id})
 
 
-class RehsponseSimpleSerializer(serializers.ModelSerializer):
-    date_display = serializers.SerializerMethodField()
-    own_url = serializers.SerializerMethodField()
-
-    class Meta:
-        model = models.Rehsponse
-        fields = [
-            'id',
-            'rehsponse_text',
-            'updated_on',
-            'date_display',
-            'own_url'
-        ]
-
-    def get_date_display(self, obj):
-        return obj.updated_on.strftime("%b %d, %I:%M %p")
-
-    def get_own_url(self, obj):
-        return reverse_lazy('detail', kwargs={'pk': obj.id})
-
-
 class UserSerializer(serializers.ModelSerializer):
     """Serializes a user profile object"""
     user_url = serializers.SerializerMethodField()
-    poster = RehsponseSimpleSerializer(many=True, read_only=True)
+    all_post = RehsponseDetailSerializer(many=True, read_only=True)
+    # seen_last = serializers.SerializerMethodField()
+    all_responders = serializers.SerializerMethodField()
 
     class Meta:
         model = models.UserProfile
-        fields = "__all__"
+        fields = [
+            "email",
+            "first_name",
+            "last_name",
+            "all_post",
+            "all_responders",
+            "password",
+            "user_url",
+
+        ]
+
+        read_only_fields = [
+            "date_of_birth"
+        ]
+
         extra_kwargs = {
             'password': {
                 'write_only': True,
@@ -100,7 +189,17 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
     def get_user_url(self, obj):
-        return reverse_lazy('userdetail', kwargs={'username': obj.first_name})
+        return reverse_lazy('userdetail', kwargs={'username': obj.username})
+
+    # def get_seen_last(self, obj):
+    #     return timesince(obj.last_login) + " ago"
+
+    def get_all_responders(self, obj):
+        q = models.Rehsponse.objects.all()
+
+        # print (q.query) # See for yourself.
+
+        return 0
 
     def create(self, validated_data):
         """Create and return a new user"""
@@ -109,24 +208,17 @@ class UserSerializer(serializers.ModelSerializer):
             first_name=validated_data['first_name'],
             last_name=validated_data['last_name'],
             password=validated_data['password'],
-            date_of_birth=validated_data['date_of_birth'],
-            short_bio=validated_data['short_bio'],
-            address=validated_data['address'],
-            city=validated_data['city'],
-            country=validated_data['country'],
-            phone=validated_data['phone'],
+            # date_of_birth=validated_data['date_of_birth'],
+            # short_bio=validated_data['short_bio'],
+            # address=validated_data['address'],
+            # city=validated_data['city'],
+            # country=validated_data['country'],
+            # phone=validated_data['phone'],
         )
         return user
 
 
-class ContactSerializer(serializers.ModelSerializer):
-    """Contacts Serializer"""
-
-    class Meta:
-        model = models.Contact
-        fields = "__all__"
-
-
+# HASH TAGS ========================================================
 class HashTagSerializer(serializers.ModelSerializer):
     """Serializer for HashTag"""
     tag_url = serializers.SerializerMethodField()
@@ -137,3 +229,12 @@ class HashTagSerializer(serializers.ModelSerializer):
 
     def get_tag_url(self, obj):
         return reverse_lazy('hashtag', kwargs={'hashtag': obj.tag})
+
+
+# CONTACTS ========================================================
+class ContactSerializer(serializers.ModelSerializer):
+    """Contacts Serializer"""
+
+    class Meta:
+        model = models.Contact
+        fields = "__all__"

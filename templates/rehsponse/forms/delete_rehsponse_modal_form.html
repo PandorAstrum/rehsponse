@@ -1,0 +1,6 @@
+{#<form class="form" method="POST">#}
+{#    {% csrf_token %}#}
+{#    <p></p>#}
+{#    <input type="submit" value="Confirm">#}
+{#</form>#}
+{% include "modals.html" with modal_id="deleteModal" modal_label_id="deleteLabelModal" modale_label="Delete Rehsponse" modal_body="Are you sure you want to delete '{{ object }}'?" submtie_type="submit" btn_close="Cancel" btn_okay="Confirm"%}

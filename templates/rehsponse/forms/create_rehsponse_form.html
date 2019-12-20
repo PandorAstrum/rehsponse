@@ -1,5 +1,1 @@
-<form {% if form_id %} id='{{ form_id }}' {% endif %}class="form-group" method="POST" action="{% if action_url %}{{ action_url }}{% endif %}" data-pg-collapsed>
-    {% csrf_token %}
-    {{ form.as_p }}
-    <input class="btn btn-primary float-right" type="submit" value={{ btn_title }}>
-</form>
+{% include "forms.html" with form=create_form action_url=create_url btn_okay="Share" form_class="res-form"%}

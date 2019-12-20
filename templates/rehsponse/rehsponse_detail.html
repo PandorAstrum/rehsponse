@@ -1,8 +1,81 @@
 {% extends 'base.html' %}
-{% block title %}| Details {% endblock %}
+{% load static %}
+{% block title %}{{ block.super }} | Details {% endblock %}
+{% block modal %} {% endblock %}
 {% block content %}
-<p>{{ object.rehsponse_text }}<br/>
-    by {{ object.user_profile.first_name }}<br/>
-    {{ object.created_on|timesince }} ago</p>
+    <div class="media"></div>
+    <div class="row pr-2 ">
+        <div class="col-md-12 col-xl-12 text-center">
+            <a href="#" id="load-more-single-response" ><span class="font-weight-bold">Load More...</span></a>
+        </div>
+    </div>
+{% endblock %}
 
+{% block script %}
+<script>
+$(document).ready(function(){
+
+    // get rehsponse ID from url
+    let currUrl = window.location.href;
+    let responseId = currUrl.split('/')[4];
+    let detailApiUrl = responseDetailAPI + responseId;
+    let responseCollection = $(".media");
+
+    function parseReply(responseDataReplies, appendContainer){
+        let replyTemplate =
+            `<div class="media mt-3">
+                <a class="mr-3" href="${responseDataReplies.user_profile.user_url}">
+                    <img src="{% static 'assets/img/user-profile-svgrepo-com.svg' %}" class="mr-3" alt="..." width="64" height="64">
+                </a>
+                <div class="media-body">
+                    <h5 class="mt-0">@<a href="${responseDataReplies.user_profile.user_url}">${responseDataReplies.user_profile.first_name}</a> <small>${responseDataReplies.timesince}</small></h5>
+                    ${responseDataReplies.rehsponse_text}
+
+                </div>
+            </div>`;
+
+        appendContainer.append(replyTemplate);
+    }
+
+    function parseResponse(responseData){
+        if (responseData.reply_count === 0 ) {
+            let responseTemplate =
+            `<img src="{% static 'assets/img/user-profile-svgrepo-com.svg' %}" class="mr-3" alt="..." width="64" height="64">
+            <div class="media-body">
+                <h5 class="mt-0">@<a href="${responseData.user_profile.user_url}">${responseData.user_profile.first_name}</a> <small>${responseData.timesince}</small></h5>
+                ${responseData.rehsponse_text}
+                <hr>
+                <div id="child-response">
+                    <span> No response yet .... </span>
+                </div>
+            </div>`;
+            responseCollection.append(responseTemplate);
+        } else {
+            let responseTemplate =
+            `<img src="{% static 'assets/img/user-profile-svgrepo-com.svg' %}" class="mr-3" alt="..." width="64" height="64">
+            <div class="media-body">
+                <h5 class="mt-0">@<a href="${responseData.user_profile.user_url}">${responseData.user_profile.first_name}</a> <small>${responseData.timesince}</small></h5>
+                ${responseData.rehsponse_text}
+                <hr>
+                <div id="child-response"></div>
+            </div>`;
+            responseCollection.append(responseTemplate);
+            $.each(responseData.all_replies, function (key, val) {
+                parseReply(val, $("#child-response"));
+            });
+        }
+
+    }
+
+    // fetch details rehsponse from api endpoints
+    $.getRequest(detailApiUrl, null, function(jqXHR, textStatus){
+        if (jqXHR.status === 200) {
+            parseResponse(jqXHR.responseJSON);
+            updateHashLinkInHTML($(".media"));
+        }
+    });
+
+    flushingFooter();
+});
+</script>
 {% endblock %}

@@ -25,9 +25,6 @@
         let navigationCollection = $("#navigation-container");
 
         // functions
-        function to_position(divid){
-            $('html, body').animate({scrollTop:$('#'+ divid).position().top - 50 }, 'slow');
-        }
         // add navigation link
         function addNavigation(title, klass){
             let navigationTemplate = `<a href="#${klass}" onClick=to_position> <i class="fas fa-angle-double-right"></i> <span>${title}</span> </a><br/>`;
@@ -74,6 +71,7 @@
         }
 
         getContactData();
+        flushingFooter();
     })
     </script>
 {% endblock %}

@@ -1,0 +1,8 @@
+<!-- Forms -->
+<form {% if form_class %} class='{{ form_class }}' {% endif %}class="form-group" method="POST" action="{% if action_url %}{{ action_url }}{% endif %}">
+    {% csrf_token %}
+    <!-- render django forms here -->
+    {{ form.as_p }}
+    {% if btn_close %} <input class="btn btn-primary float-right" type="submit" value={{ btn_close }}> {% endif %}
+    <input class="btn btn-primary float-right" type="submit" value={{ btn_okay }}>
+</form>

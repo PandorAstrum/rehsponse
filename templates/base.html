@@ -19,6 +19,7 @@
     <title>{% block title %}Rehsponse{% endblock %}</title>
   </head>
   <body>
+    {% block modal %} {% endblock %}
     {% include "navbar.html" %}
     <div class="container">
         {% block content %}
@@ -37,11 +38,160 @@
 {#    <script type="text/javascript" src="https://use.fontawesome.com/releases/v5.6.3/js/all.js"></script>#}
     <script src="{% static 'assets/js/fontawesome5.6.3all.js' %}"></script>
     <script>
-        $(document).ready(function(){
+         // get a certain cookie
+         function getCookie(name) {
+                var cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    var cookies = document.cookie.split(';');
+                    for (var i = 0; i < cookies.length; i++) {
+                        var cookie = cookies[i].trim();
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+         // get query from url
+         function getParameterByName(name, url) {
+                if (!url) {
+                    url = window.location.href;
+                }
+                name = name.replace(/[\[\]]/g, "\\$&");
+                var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                results = regex.exec(url);
+                if (!results) return null;
+                if (!results[2]) return '';
+                return decodeURIComponent(results[2].replace(/\+/g, " "));
+            }
+         // flushing footer to cover all page
+         function flushingFooter() {
+             if (footerTop < docHeight) $('footer').css('margin-top', 10+ (docHeight - footerTop) + 'px');
+         }
+         // hash tag underline
+         function updateHashLinkInHTML(divKlass) {
+            $.each(divKlass, function(data){
+                let hashTagRegex = /(^|\s)#([\w\d-]+)/g;
+                let newTagText = $(this).html().replace(hashTagRegex, "$1<a href='/tags/$2'>#$2</a>");
+                $(this).html(newTagText);
+                let userNameRegex = /(^|\s)@([\w\d-]+)/g;
+                let newUserText = $(this).html().replace(userNameRegex, "$1@<a href='/user/$2/rehsponses'>$2</a>");
+                $(this).html(newUserText);
+            });
+        }
+         // smooth transition
+         function to_position(divid){
+            $('html, body').animate({scrollTop:$('#'+ divid).position().top - 50 }, 'slow');
+        }
+        // global variables --------------------------------------------------------
+         let docHeight = $(window).height();
+         let footerHeight = $('footer').height();
+         let footerTop = $('footer').position().top + footerHeight;
+
+         //API endpoints
+         let responseListAPI = "/api/list";
+         let responseCreateAPI = "/api/rehsponse/create/";
+         let responseDetailAPI = '/api/rehsponse/';
+         let hashTagListAPI = "/api/tags/";
+         let userDetailAPI = "api/user/";
+
+         $(document).ready(function(){
+
             let typingTimer;
             let doneInterval = 500;
             let searchForm = $("#nav-search-form input[type=search]");
             let searchQuery;
+            var username = "John";
+            var csrftoken = getCookie('csrftoken');
+            // functions --------------------------------------------------------------
+
+
+            // auto search activate after some time
+            function doneSearchTyping(){
+                if (searchQuery){
+                    document.location.href = '/search/?q=' + searchQuery;
+                }
+            }
+
+            // post query to api
+            $.postRequest = function(url, data, completeCallback) {
+                return jQuery.ajax({
+                   // headers: {
+                        //'Accept': 'application/json',
+                        //'Content-Type': 'application/json',
+                        //'"X-CSRFToken"': csrftoken
+                    //},
+                    'type': 'POST',
+                    'url': url,
+                    'data': data,
+                    'complete': completeCallback
+                });
+            };
+
+            // post query to api
+            $.patchRequest = function(url, data, completeCallback) {
+                return jQuery.ajax({
+                    //headers: {
+                    //    'X-HTTP-Method-Override': 'PATCH',
+                    //},
+                    'type': 'PATCH',
+                    'url': url,
+                    'data': data,
+                    'complete': completeCallback
+                });
+            };
+
+            // post query to api endpoints with authorizations
+            $.postAuthorized = function(url, auth, data, completeCallback) {
+                return jQuery.ajax({
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'Authorization' : auth
+                    },
+                    'type': 'POST',
+                    'data': JSON.stringify(data),
+                    'url': url,
+                    'dataType': 'json',
+                    'complete': completeCallback
+                });
+        };
+
+            // get query to api endpoints with authorizations
+            $.getAuthorized = function(url, auth, data, completeCallback) {
+                return jQuery.ajax({
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'Authorization' : auth
+                    },
+                    'type': 'GET',
+                    'url': url,
+                    'data': JSON.stringify(data),
+                    'complete': completeCallback
+                });
+            };
+
+            // get query to api endpoints with authorizations
+            $.getRequest = function(url, query, completeCallback) {
+                return jQuery.ajax({
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    'type': 'GET',
+                    'url': url,
+                    'data': {'q': query},
+                    'complete': completeCallback
+                });
+            };
+
+
+
+
+            // search form key event
             searchForm.keyup(function(event){
                 searchQuery = $(this).val();
                 clearTimeout(typingTimer);
@@ -50,13 +200,8 @@
             searchForm.keydown(function (event) {
                 clearTimeout(typingTimer);
             });
-
-            function doneSearchTyping(){
-                if (searchQuery){
-                    document.location.href = '/search/?q=' + searchQuery;
-                }
-            }
-        })
+            flushingFooter();
+        });
     </script>
     {% block script %} {% endblock %}
 

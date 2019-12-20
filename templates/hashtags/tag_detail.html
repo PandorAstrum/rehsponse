@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ block.super }} | Tags {% endblock %}
+{% block content %}
+<div class="row pt-3">
+    <div class="col-xl-12 text-center">
+        <h6>Tags #{{ obj.tag }}</h6>
+        {% for response in obj.get_rehsponse %}
+            <div class="card text-center">
+                <div class="card-header">
+                    @{{ response.user_profile.first_name }}
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ response.rehsponse_text }}</h5>
+                </div>
+                <div class="card-footer text-muted">
+                    {{ response.timesince}}
+                </div>
+            </div>
+            <hr>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+$(document).ready(function(){
+    updateHashLinkInHTML($(".card-title"));
+    updateHashLinkInHTML($(".card-header"));
+    flushingFooter();
+});
+</script>
+{% endblock %}
+

@@ -13,7 +13,13 @@ urlpatterns = [
     path('rehsponse/create/', views.RehsponseCreateAPIView.as_view(), name="apicreate"),  # api/rehsponse/create
     path('rehsponse/<int:pk>/edit', views.RehsponseUpdateAPIView.as_view(), name="apiupdate"),  # api/rehsponse/1/edit
     path('rehsponse/<int:pk>/delete', views.RehsponseDeleteAPIView.as_view(), name="apidelete"),  # api/rehsponse/1/delete
+    path('rehsponse/<int:pk>/loved/', views.LoveToggleAPIView.as_view(), name="apilove"),  # api/rehsponse/1/loved
+
+    path('tags/', views.HashTagListAPIView.as_view(), name="apitags"),  # api/tags
     path('contacts/', views.ContactListAPIView.as_view(), name="apicontact"),  # api/contacts
-    path('hashtag/', views.HashTagListAPIView.as_view(), name="apihashtag"),  # api/hashtag
-    path('user/<str:username>/', views.UserDetailAPIView.as_view(), name="apidetailuser"),  # api/user/1
+
+    path('user/create/', views.UserCreateAPIView.as_view(), name="apiusercreate"),  # api/user/username/rehsponses
+    path('user/<str:username>/rehsponses', views.UserDetailAPIView.as_view(), name="apidetailuser"),  # api/user/username/rehsponses
+    path('user/list', views.UserListAPIView.as_view(), name="apiuserlist"),  # api/user/username/rehsponses
+
 ]

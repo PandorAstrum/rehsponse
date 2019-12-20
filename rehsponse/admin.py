@@ -31,4 +31,5 @@ class HashTagAdmin(admin.ModelAdmin):
 class ContactAdmin(admin.ModelAdmin):
     list_display = ["__str__", "is_active"]
 
+
 admin.site.site_header = "Rehsponse Administration"
