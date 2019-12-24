@@ -15,59 +15,12 @@ class UserSimplified(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'city',
+            "username",
             'user_url',
         ]
 
     def get_user_url(self, obj):
         return reverse_lazy('userdetail', kwargs={'username': obj.username})
-
-
-class RehsponseSerializer(serializers.ModelSerializer):
-    """Serialization of Response item (Default)"""
-    user_profile = UserSimplified(read_only=True)
-    love_count = serializers.SerializerMethodField()
-    did_love = serializers.SerializerMethodField()
-    reply_count = serializers.SerializerMethodField()
-    own_url = serializers.SerializerMethodField()
-    timesince = serializers.SerializerMethodField()
-
-    class Meta:
-        model = models.Rehsponse
-        fields = [
-            'id',
-            'user_profile',
-            'rehsponse_text',
-            'rehsponse_image',
-            'love_count',
-            'did_love',
-            'reply',
-            'reply_count',
-            'own_url',
-            'timesince',
-            'updated_on'
-        ]
-
-    def get_love_count(self, obj):
-        return obj.loved.all().count()
-
-    def get_did_love(self, obj):
-        request = self.context.get("request")
-        user = request.user
-        if user.is_authenticated:
-            if user in obj.loved.all():
-                return True
-        return False
-
-    def get_own_url(self, obj):
-        return reverse_lazy('detail', kwargs={'pk': obj.id})
-
-    def get_timesince(self, obj):
-        return timesince(obj.updated_on) + " ago"
-
-    def get_reply_count(self, obj):
-        if obj.replying_to:
-            return obj.children().count()
-        return 0
 
 
 class RehsponseChildSerializer(serializers.ModelSerializer):
@@ -101,7 +54,7 @@ class RehsponseDetailSerializer(serializers.ModelSerializer):
     love_count = serializers.SerializerMethodField()  # total love count for this post
     did_love = serializers.SerializerMethodField()  # the user did love already
     reply_count = serializers.SerializerMethodField()   # total reply count
-    replying_to_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    replying_to_id = serializers.IntegerField(required=False, allow_null=True)
     all_replies = serializers.SerializerMethodField()
     timesince = serializers.SerializerMethodField()     # custom date
     date_display = serializers.SerializerMethodField()  # custom date
@@ -159,24 +112,24 @@ class UserSerializer(serializers.ModelSerializer):
     """Serializes a user profile object"""
     user_url = serializers.SerializerMethodField()
     all_post = RehsponseDetailSerializer(many=True, read_only=True)
-    # seen_last = serializers.SerializerMethodField()
     all_responders = serializers.SerializerMethodField()
 
     class Meta:
         model = models.UserProfile
         fields = [
+            "id",
             "email",
             "first_name",
             "last_name",
-            "all_post",
             "all_responders",
+            "all_post",
             "password",
             "user_url",
-
         ]
 
         read_only_fields = [
-            "date_of_birth"
+            "date_of_birth",
+            "phone",
         ]
 
         extra_kwargs = {
@@ -191,14 +144,17 @@ class UserSerializer(serializers.ModelSerializer):
     def get_user_url(self, obj):
         return reverse_lazy('userdetail', kwargs={'username': obj.username})
 
-    # def get_seen_last(self, obj):
-    #     return timesince(obj.last_login) + " ago"
-
     def get_all_responders(self, obj):
-        q = models.Rehsponse.objects.all()
+        request = self.context.get("request")
+        user = request.user
+        self_post = models.Rehsponse.objects.filter(user_profile_id=user.id)
+        post_reply = models.Rehsponse.objects.filter(user_profile_id=user.id).exclude(replying_to=None)
+        print(post_reply)
 
-        # print (q.query) # See for yourself.
+        # from replies only take uniuqe user
 
+        # if obj.all_post:
+        #     return obj.children().count()
         return 0
 
     def create(self, validated_data):

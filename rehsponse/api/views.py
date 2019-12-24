@@ -46,9 +46,10 @@ class LoveToggleAPIView(APIView):
 # REHSPONSES ====================================================
 class RehsponseListAPIView(generics.ListAPIView):
     """Get all list of response (RETRIEVE ALL)"""
-    # authentication_classes = (TokenAuthentication,)
     serializer_class = serializers.RehsponseDetailSerializer
     pagination_class = pagination.StandardResultsPaginations
+    permission_classes = (IsAuthenticated,)
+    # authentication_classes = (TokenAuthentication,)
 
     def get_serializer_context(self, *args, **kwargs):
         context = super(RehsponseListAPIView, self).get_serializer_context(*args, **kwargs)
@@ -58,7 +59,7 @@ class RehsponseListAPIView(generics.ListAPIView):
     def get_queryset(self):
         # get random response
         qs2 = models.Rehsponse.objects.filter(user_profile=self.request.user)
-        qs3 = models.Rehsponse.objects.filter(replying_to_id=None)
+        qs3 = models.Rehsponse.objects.filter(replying_to=None)
         qs = (qs2 | qs3).distinct()
         query = self.request.GET.get("q", None)
         if query is not None:
@@ -72,29 +73,35 @@ class RehsponseListAPIView(generics.ListAPIView):
 
 class RehsponseDetailAPIView(generics.RetrieveAPIView):
     """Get a single rehsponses (RETRIEVE SINGLE)"""
-    # authentication_classes = (TokenAuthentication,)
     serializer_class = serializers.RehsponseDetailSerializer
+    permission_classes = (IsAuthenticated,)
+    # authentication_classes = (TokenAuthentication,)
     queryset = models.Rehsponse.objects.all()
 
 
 class RehsponseCreateAPIView(generics.CreateAPIView):
     """Create a response (CREATE)"""
-    # authentication_classes = (TokenAuthentication,)
     serializer_class = serializers.RehsponseDetailSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = (IsAuthenticated,)
+    # authentication_classes = (TokenAuthentication,)
 
     def perform_create(self, serializer):
         serializer.save(user_profile=self.request.user)
 
 
 class RehsponseUpdateAPIView(generics.UpdateAPIView):
-    # authentication_classes = (TokenAuthentication,)
+    """Edit a rehsponse (UPDATE)"""
     serializer_class = serializers.RehsponseDetailSerializer
+    permission_classes = (IsAuthenticated, permission.UpdateOwnPost)
+    # authentication_classes = (TokenAuthentication,)
     queryset = models.Rehsponse.objects.all()
 
 
 class RehsponseDeleteAPIView(generics.DestroyAPIView):
+    """Delete a rehsponse (DESTROY)"""
     serializer_class = serializers.RehsponseDetailSerializer
+    permission_classes = (IsAuthenticated, permission.UpdateOwnPost)
+    # authentication_classes = (TokenAuthentication,)
 
 
 class ContactListAPIView(generics.ListAPIView):
@@ -106,27 +113,41 @@ class ContactListAPIView(generics.ListAPIView):
 class HashTagListAPIView(generics.ListAPIView):
     """Get all list of hash tags (RETRIEVE ALL) Limit to only 10 in negative date order"""
     serializer_class = serializers.HashTagSerializer
+    permission_classes = (IsAuthenticated,)
+    # authentication_classes = (TokenAuthentication,)
 
     def get_queryset(self):
         """Query mixin"""
         return models.HashTag.objects.all().order_by('-created_on')[:10]
 
 
+# USERS =========================================================
 class UserDetailAPIView(generics.RetrieveAPIView):
-    """User Detail view"""
-    permission_classes = (IsAuthenticated,)
+    """User Detail view (RETRIEVE SINGLE)"""
     serializer_class = serializers.UserSerializer
+    permission_classes = (IsAuthenticated,)
+    # authentication_classes = (TokenAuthentication,)
+
+    def get_serializer_context(self, *args, **kwargs):
+        context = super(UserDetailAPIView, self).get_serializer_context(*args, **kwargs)
+        context['request'] = self.request
+        return context
 
     def get_object(self, queryset=models.UserProfile):
         _user_name = self.kwargs.get('username')
         obj = get_object_or_404(models.UserProfile, username__iexact=_user_name)
         return obj
+
+    def get_queryset(self):
+        user = self.request.user.id
+        return models.UserProfile.objects.filter(id=user)
 
 
 class UserCreateAPIView(generics.CreateAPIView):
-    """User Detail view"""
-    permission_classes = (IsAuthenticated,)
+    """Create a user (CREATE)"""
     serializer_class = serializers.UserSerializer
+    permission_classes = (IsAuthenticated,)
+    # authentication_classes = (TokenAuthentication,)
 
     def get_object(self, queryset=models.UserProfile):
         _user_name = self.kwargs.get('username')
@@ -134,10 +155,11 @@ class UserCreateAPIView(generics.CreateAPIView):
         return obj
 
 
-class UserListAPIView(generics.ListAPIView):
-    """User Detail view"""
-    permission_classes = (IsAuthenticated,)
+class UserEditAPIView(generics.UpdateAPIView):
+    """Edit a User (UPDATE)"""
     serializer_class = serializers.UserSerializer
+    permission_classes = (IsAuthenticated, permission.UpdateOwnProfile)
+    # authentication_classes = (TokenAuthentication,)
 
     def get_object(self, queryset=models.UserProfile):
         _user_name = self.kwargs.get('username')
@@ -145,18 +167,13 @@ class UserListAPIView(generics.ListAPIView):
         return obj
 
 
-class PostViewSets(viewsets.ModelViewSet):
-    """Handles Response from users"""
-    serializer_class = serializers.RehsponseDetailSerializer
-    queryset = models.Rehsponse.objects.all()
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (
-        permission.UpdateOwnPost,
-        IsAuthenticated
-    )
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('post_text', )
+class UserDeleteAPIView(generics.DestroyAPIView):
+    """Delete a User (Destroy)"""
+    serializer_class = serializers.UserSerializer
+    permission_classes = (IsAuthenticated, permission.UpdateOwnProfile)
+    # authentication_classes = (TokenAuthentication,)
 
-    def perform_create(self, serializer):
-        """Sets the user profile to the looged in user"""
-        serializer.save(user_profile=self.request.user)
+    def get_object(self, queryset=models.UserProfile):
+        _user_name = self.kwargs.get('username')
+        obj = get_object_or_404(models.UserProfile, username__iexact=_user_name)
+        return obj

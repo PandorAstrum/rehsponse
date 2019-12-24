@@ -1,14 +1,16 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}{{ block.super }} | Board {% endblock %}
+{% block modal %} {% endblock %}
 {% block content %}
-
+    <div class="media"></div>
 {% endblock %}
 
 {% block script %}
 <script>
 $(document).ready(function(){
 
+    flushingFooter();
 });
 </script>
 {% endblock %}

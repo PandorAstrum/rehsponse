@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %} {{ block.super }} | Login {% endblock %}
+{% block modal %} {% endblock %}
+{% block content %}
+    <div class="row pt-3">
+        <div class="col-md-6 col-lg-6 col-xl-6">
+            <div>
+                <div>
+                    <img class="w-100 img-thumbnail" src="{% static 'assets/img/front.svg' %}" alt="login_pic">
+                </div>
+            </div>
+            <div class="row mb-2 text-center justify-content-center">
+                <h4 class="font-weight-bold ml-2" style="color: #7555a3;">Login</h4>
+            </div>
+            <form class="login" method="post" action="{% url 'login'%}"> {% csrf_token %}
+                <div id="login-form-user" class="form-group">
+                    {{ form.username.label_tag }}
+                    {{ form.username }}
+                </div>
+                <div id="login-form-pass" class="form-group">
+                    {{ form.password.label_tag }}
+                    {{ form.password }}
+                </div>
+                <div class="row align-items-center mb-2">
+                    <div class="col-xl-6">
+                        <input type="submit" name='action' class="btn btn-primary btn-block" value="Login">
+                        <input type="hidden" name="next" value="{{ next }}">
+                    </div>
+                    <div class="col-xl-6">
+                        <a href="{% url 'password_reset' %}" class="btn btn-block btn-outline-secondary" type="button">Forget Password ?</a>
+                    </div>
+                </div>
+                <input type="hidden" name="type_of_form" value="login">
+            </form>
+            {% if form.errors %}
+                <p>Your username and password didn't match. Please try again.</p>
+            {% endif %}
+            {% if next %}
+            {% if user.is_authenticated %}
+                <p>Your account doesn't have access to this page. To proceed,
+                please login with an account that has access.</p>
+            {% else %}
+                <p>Please login to see this page.</p>
+            {% endif %}
+            {% endif %}
+            <div class="row align-items-center mb-2">
+            <div class="col-xl-12">
+                <button class="btn btn-block btn-secondary" type="button">Continue with Gmail or Facebook</button>
+            </div>
+        </div>
+    </div>
+    <div class="pt-3 col-md-6 col-lg-6 col-xl-6">
+        <div class="row no-gutters mt-auto d-flex align-items-center mb-2">
+            <i class="fas fa-newspaper fa-2x fa-pull-left align-self-baseline" style="color: #868e96;"></i>
+            <h4 class="font-weight-bold ml-2" style="color: #445ca9;">See</h4>
+            <h6 class="ml-2 font-weight-bold">what other peoples are talking about</h6>
+        </div>
+        <div class="row no-gutters mt-auto d-flex align-items-center mb-2">
+            <i class="fas fa-2x fa-pull-left align-self-baseline fa-comments" style="color: #868e96;"></i>
+            <h4 class="font-weight-bold ml-2" style="color: #445ca9;">Share</h4>
+            <h6 class="ml-2 font-weight-bold">your own response with freedom</h6>
+        </div>
+        <div class="row no-gutters mt-auto d-flex align-items-center mb-2">
+            <i class="fas fa-2x fa-pull-left align-self-baseline fa-sitemap" style="color: #868e96;"></i>
+            <h4 class="font-weight-bold ml-2" style="color: #445ca9;">Variety</h4>
+            <h6 class="ml-2 font-weight-bold">of topics</h6>
+        </div>
+        <div class="row no-gutters mt-auto d-flex align-items-center mb-2">
+            <i class="fas fa-2x fa-pull-left align-self-baseline fa-chart-line" style="color: #868e96;"></i>
+            <h4 class="font-weight-bold ml-2" style="color: #445ca9;">Find</h4>
+            <h6 class="ml-2 font-weight-bold">out latest trends and more ...</h6>
+        </div>
+        <hr/>
+        <div class="row mb-2 text-center justify-content-center">
+            <div class="col-xl-12">
+                <h4 class="font-weight-bold ml-2" style="color: #7555a3;">Sign Up</h4>
+            </div>
+            <div class="col-xl-12">
+                <h6 class="font-weight-bold ml-2">It's free</h6>
+            </div>
+            <div class="col-xl-12">
+                <p class="font-weight-bold ml-2">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
+            </div>
+            <div class="col-xl-12">
+                <a href="{% url 'signup' %}" class="btn btn-success" type="button">Sign Up Here</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+$(document).ready(function(){
+    let loginFormUserInput = $("#login-form-user input");
+    let loginFormPassInput = $("#login-form-pass input");
+    let regFormEmailInput = $("#registration-form-email input");
+    let regFormEUsernameInput = $("#registration-form-username input");
+    let regFormFirstInput = $("#registration-form-first-name input");
+    let regFormLastInput = $("#registration-form-last-name input");
+    let regFormPassInput = $("#registration-form-pass input");
+
+    loginFormUserInput.addClass("form-control");
+    loginFormPassInput.addClass("form-control");
+    regFormEmailInput.addClass("form-control");
+    regFormEUsernameInput.addClass("form-control");
+    regFormFirstInput.addClass("form-control");
+    regFormLastInput.addClass("form-control");
+    regFormPassInput.addClass("form-control");
+
+    loginFormUserInput.attr("id", "id_username");
+    loginFormPassInput.attr("id", "id_password");
+    loginFormUserInput.attr("placeholder", "Enter Email");
+    loginFormPassInput.attr("placeholder", "Enter Password");
+    flushingFooter();
+});
+</script>
+{% endblock %}

@@ -7,7 +7,7 @@ from rehsponse import models
 @admin.register(models.UserProfile)
 class UserAdmin(admin.ModelAdmin):
     date_hierarchy = "created_on"
-    list_display = ["__str__", "created_on", "first_name", "last_name", "is_superuser", "is_staff"]
+    list_display = ["__str__", "created_on", "first_name", "last_name", "email", "is_superuser", "is_staff"]
 
 
 # @admin.register(models.UserProfile)

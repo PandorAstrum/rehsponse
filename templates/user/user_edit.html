@@ -3,14 +3,6 @@
 {% block title %}{{ block.super }} | Edit User {% endblock %}
 {% block content %}
 
-
-{#    <form {% if form_class %} class='{{ form_class }}' {% endif %}class="form-group" method="POST" action="{% if action_url %}{{ action_url }}{% endif %}">#}
-{#    {% csrf_token %}#}
-{#    <!-- render django forms here -->#}
-{##}
-{#    {% if btn_close %} <input class="btn btn-primary float-right" type="submit" value={{ btn_close }}> {% endif %}#}
-{#    <input class="btn btn-primary float-right" type="submit" value={{ btn_okay }}>#}
-{#</form>#}
 <div class="row pt-3">
 <form action="">
     <div class="row flex-lg-nowrap">
@@ -31,7 +23,7 @@
                                     <div class="col d-flex flex-column flex-sm-row justify-content-between mb-3">
                                         <div class="text-center text-sm-left mb-2 mb-sm-0">
                                             <h4 class="pt-sm-2 pb-1 mb-0 text-nowrap">{{ request.user.first_name }} {{ request.user.last_name }}</h4>
-                                            <p class="mb-0">@johnny.s</p>
+                                            <p class="mb-0">@{{request.user.username}}</p>
                                             <div class="text-muted">
                                                 <small>Last seen {{ request.user.last_login|timesince }} ago</small>
                                             </div>
@@ -43,9 +35,9 @@
                                             </div>
                                         </div>
                                         <div class="text-center text-sm-right">
-                                            <span class="badge badge-secondary">administrator</span>
+                                            <span class="badge badge-secondary"></span>
                                             <div class="text-muted">
-                                                <small>Joined 09 Dec 2017</small>
+                                                <small>Joined: {{ request.user.created_on }}</small>
                                             </div>
                                         </div>
                                     </div>
@@ -62,31 +54,31 @@
                                                 <div class="col">
                                                     <div class="row">
                                                         <div class="col">
-                                                            <div class="form-group">
-                                                                <label>Full Name</label>
-                                                                <input class="form-control" type="text" name="name" placeholder="John Smith" value="John Smith">
+                                                            <div class="form-group" id="first_name">
+                                                                {{ form.first_name.label_tag }}
+                                                                {{ form.first_name }}
                                                             </div>
                                                         </div>
                                                         <div class="col">
-                                                            <div class="form-group">
-                                                                <label>Username</label>
-                                                                <input class="form-control" type="text" name="username" placeholder="johnny.s" value="johnny.s">
+                                                            <div class="form-group" id="last_name">
+                                                                {{ form.last_name.label_tag }}
+                                                                {{ form.last_name }}
                                                             </div>
                                                         </div>
                                                     </div>
                                                     <div class="row">
                                                         <div class="col">
-                                                            <div class="form-group">
-                                                                <label>Email</label>
-                                                                <input class="form-control" type="text" placeholder="user@example.com">
+                                                            <div class="form-group" id="email">
+                                                                {{ form.email.label_tag }}
+                                                                {{ form.email }}
                                                             </div>
                                                         </div>
                                                     </div>
                                                     <div class="row">
                                                         <div class="col mb-3">
-                                                            <div class="form-group">
-                                                                <label>About</label>
-                                                                <textarea class="form-control" rows="5" placeholder="My Bio"></textarea>
+                                                            <div class="form-group" id="short_bio">
+                                                                {{ form.short_bio.label_tag }}
+                                                                {{ form.short_bio }}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -95,54 +87,59 @@
                                             <div class="row">
                                                 <div class="col-12 col-sm-6 mb-3">
                                                     <div class="mb-2">
-                                                        <b>Change Password</b>
+                                                        <b>Address</b>
                                                     </div>
                                                     <div class="row">
                                                         <div class="col">
-                                                            <div class="form-group">
-                                                                <label>Current Password</label>
-                                                                <input class="form-control" type="password" placeholder="••••••">
+                                                            <div class="form-group" id="address">
+                                                                {{ form.address.label_tag }}
+                                                                {{ form.address }}
                                                             </div>
                                                         </div>
                                                     </div>
                                                     <div class="row">
                                                         <div class="col">
-                                                            <div class="form-group">
-                                                                <label>New Password</label>
-                                                                <input class="form-control" type="password" placeholder="••••••">
+                                                            <div class="form-group" id="city">
+                                                                {{ form.city.label_tag }}
+                                                                {{ form.city }}
                                                             </div>
                                                         </div>
                                                     </div>
                                                     <div class="row">
                                                         <div class="col">
-                                                            <div class="form-group">
-                                                                <label>Confirm
-                                                                    <span class="d-none d-xl-inline">Password</span>
-                                                                </label>
-                                                                <input class="form-control" type="password" placeholder="••••••">
+                                                            <div class="form-group" id="country">
+                                                                {{ form.country.label_tag }}
+                                                                {{ form.country }}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col">
+                                                            <div class="form-group" id="phone">
+                                                                {{ form.phone.label_tag }}
+                                                                {{ form.phone }}
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div class="col-12 col-sm-5 offset-sm-1 mb-3">
                                                     <div class="mb-2">
-                                                        <b>Keeping in Touch</b>
+                                                        <b>Account Options</b>
                                                     </div>
                                                     <div class="row">
                                                         <div class="col">
-                                                            <label>Email Notifications</label>
                                                             <div class="custom-controls-stacked px-2">
                                                                 <div class="custom-control custom-checkbox">
-                                                                    <input type="checkbox" class="custom-control-input" id="notifications-blog" checked="">
-                                                                    <label class="custom-control-label" for="notifications-blog">Blog posts</label>
+                                                                    <input type="checkbox" class="custom-control-input" id="notifications-blog">
+                                                                    <label class="custom-control-label" for="notifications-blog">Hide Profile</label>
                                                                 </div>
                                                                 <div class="custom-control custom-checkbox">
-                                                                    <input type="checkbox" class="custom-control-input" id="notifications-news" checked="">
-                                                                    <label class="custom-control-label" for="notifications-news">Newsletter</label>
+                                                                    <input type="checkbox" class="custom-control-input" id="notifications-news">
+                                                                    <label class="custom-control-label" for="notifications-news">Stop message</label>
                                                                 </div>
                                                                 <div class="custom-control custom-checkbox">
                                                                     <input type="checkbox" class="custom-control-input" id="notifications-offers" checked="">
-                                                                    <label class="custom-control-label" for="notifications-offers">Personal Offers</label>
+                                                                    <label class="custom-control-label" for="notifications-offers">Offers from Rehsponse.com</label>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -191,8 +188,16 @@
 {% block script %}
 <script>
 $(document).ready(function(){
-    // get user details
-
+    // style the field
+    $('#first_name input').addClass('form-control');
+    $('#last_name input').addClass('form-control');
+    $('#email input').addClass('form-control');
+    $('#short_bio textarea').addClass('form-control');
+    $('#address textarea').addClass('form-control');
+    $('#city input').addClass('form-control');
+    $('#country input').addClass('form-control');
+    $('#phone input').addClass('form-control');
+    {#$('#short_bio input').attrs({'rows': 5});#}
     // fill the template
     // handle delete
     // handle update
@@ -201,6 +206,12 @@ $(document).ready(function(){
     $("#contact-btn").on('click', function(e){
         window.location.href = `/contacts/`;
     });
+
+
+    // form submit
+
+
+    flushingFooter();
 });
 </script>
 {% endblock %}

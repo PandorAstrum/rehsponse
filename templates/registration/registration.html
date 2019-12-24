@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %} {{ block.super }} | Sign Up {% endblock %}
+{% block modal %} {% endblock %}
+{% block content %}
+    <div class="row pt-3">
+        <div class="col-md-12 col-lg-12 col-xl-12">
+            <div class="row mb-2 text-center justify-content-center">
+            <div class="col-xl-12">
+                <h4 class="font-weight-bold ml-2" style="color: #7555a3;">Sign Up</h4>
+            </div>
+        </div>
+        <form method="post" > {% csrf_token %}
+
+            <div id="registration-form-email" class="form-group">
+                {{ form.email.label_tag }}
+                {% if form.email.errors %}
+                    <p style="color: red">Sorry this email is already registered</p>
+                {% endif %}
+                {{ form.email }}
+            </div>
+
+            <div id="registration-form-username" class="form-group">
+                {{ form.username.label_tag }}
+                {% if form.username.errors %}
+                    <p style="color: red">Sorry this username is already taken</p>
+                {% endif %}
+                {{ form.username }}
+            </div>
+            <div class="row">
+                <div class="col-xl-6">
+                    <div id="registration-form-first-name" class="form-group">
+                        {{ form.first_name.label_tag }}
+                        {{ form.first_name }}
+                    </div>
+                </div>
+                <div class="col-xl-6">
+                    <div id="registration-form-last-name" class="form-group">
+                        {{ form.last_name.label_tag }}
+                        {{ form.last_name }}
+                    </div>
+                </div>
+            </div>
+            <div id="registration-form-pass" class="form-group">
+                    {{ form.password.label_tag }}
+                    {{ form.password }}
+                </div>
+            <div class="row align-items-center mb-2">
+                <div class="col-xl-12">
+                    <input type="submit" class="btn btn-success" value="Create an account">
+                </div>
+            </div>
+        </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+<script>
+$(document).ready(function(){
+    let loginFormUserInput = $("#login-form-user input");
+    let loginFormPassInput = $("#login-form-pass input");
+    let regFormEmailInput = $("#registration-form-email input");
+    let regFormEUsernameInput = $("#registration-form-username input");
+    let regFormFirstInput = $("#registration-form-first-name input");
+    let regFormLastInput = $("#registration-form-last-name input");
+    let regFormPassInput = $("#registration-form-pass input");
+
+    loginFormUserInput.addClass("form-control");
+    loginFormPassInput.addClass("form-control");
+    regFormEmailInput.addClass("form-control");
+    regFormEUsernameInput.addClass("form-control");
+    regFormFirstInput.addClass("form-control");
+    regFormLastInput.addClass("form-control");
+    regFormPassInput.addClass("form-control");
+
+    loginFormUserInput.attr("id", "id_username");
+    loginFormPassInput.attr("id", "id_password");
+    loginFormUserInput.attr("placeholder", "Enter Email");
+    loginFormPassInput.attr("placeholder", "Enter Password");
+    flushingFooter();
+});
+</script>
+{% endblock %}

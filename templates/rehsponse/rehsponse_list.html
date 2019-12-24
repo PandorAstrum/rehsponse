@@ -10,7 +10,7 @@
     <div class="row pt-3" data-pg-collapsed>
         <div class="col-md-2 text-center shadow pt-3" data-pg-collapsed>
             <a href="{% url 'userdetail' username=request.user.username %}">
-                <img class="w-200 img-thumbnail rounded-circle mx-auto shadow-sm" src="{% static 'assets/img/user-profile-svgrepo-com.svg' %}" width="140" height="140" alt="{{ request.user.first_name}}_photo">
+                <img class="w-200 img-thumbnail rounded-circle mx-auto shadow-sm" src="{% static 'assets/img/user-profile-svgrepo-com.svg' %}" width="140" height="140" alt="{{ request.user.username}}_photo">
             </a>
             <h5 class="font-weight-bold pt-3" >{{request.user.first_name }} {{ request.user.last_name }}</h5>
             <h6><small>Joined: {{request.user.created_on }}</small></h6>
@@ -20,9 +20,7 @@
             {% include "rehsponse/forms/create_rehsponse_form.html"%}
             <hr/>
             {% endif %}
-            <div id="response-container">
-
-            </div>
+            <div id="response-container"></div>
             {% include "loadmore.html" %}
         </div>
         <div class="col-md-2 shadow pt-3">
@@ -111,16 +109,30 @@
             console.log(formData);
             if (charsCurrent >= 0) {
                 // create post response
-                $.patchRequest(responseEditAPI, formData, function(jqXHR, textSTatus){
-
-                    updateTextArea.val("");
-                    //attachResponse(jqXHR.responseJSON, true, reResponseId);
-                    //spanChars.text(charsStart);
-                    //updateHashLinkInHTML($(".media-body"));
-                    updateFormModal.modal("hide");
+                $.patchRequest(responseEditAPI, formData, function(jqXHR, textStatus){
+                    if (jqXHR.status === 200) {
+                        // clear text area
+                        updateTextArea.val("");
+                        // clear div
+                        $('#response-container').html('');
+                        // re render div
+                        $.getRequest(responseListAPI, query, function(jqXHR, textStatus){
+                            if (jqXHR.status === 200) {
+                                responseList = jqXHR.responseJSON.results;
+                                if (jqXHR.responseJSON.next){
+                                    nextResponseURL = jqXHR.responseJSON.next;
+                                    loadMore(loadBtn, nextResponseURL);
+                                } else {
+                                    loadBtn.css('display', 'none');
+                                }
+                                parseResponse(responseList);
+                                updateHashLinkInHTML($(".media-body"));
+                            }
+                        });
+                        // hide modal
+                        updateFormModal.modal("hide");
+                    }
                 });
-            //} else {
-                //console.log("Exceeds response length");
             }
         });
 
@@ -206,11 +218,14 @@
             e.preventDefault();
             let thisBtn = $(this);
             let reId = thisBtn.attr("data-id");
+            let reText = thisBtn.attr("data-text");
             // pop up form modal
             updateFormModal.modal();
 
             updateFormModal.on("shown.bs.modal", function(){
                 $("input#hidden-response-update[type='hidden']").val(reId);
+                // get text from id
+                updateTextArea.val(reText);
             });
             updateFormModal.on("hide.bs.modal", function(){
                 updateTextArea.val('');
@@ -233,7 +248,7 @@
                 `<div class="col-md-10">
                     <div class="row">
                         <div class="col-xl-6 text-left text-sm-center text-lg-left col-lg-6">
-                            <span>@<a href="${responseData.user_profile.user_url}">${responseData.user_profile.first_name}</a></span>
+                            <span>@<a href="${responseData.user_profile.user_url}">${responseData.user_profile.username}</a></span>
                         </div>
                         <div class="col-xl-6 text-right text-sm-center col-lg-6 text-lg-right">
                             <small>at ${responseData.date_display} (${responseData.timesince})</small>
@@ -247,7 +262,7 @@
                             <small id="response-text-${responseData.id}"><i class="fas fa-bullhorn"></i> ${responseData.reply_count} responses</small> | <small id="love-text-${responseData.id}"><i class="fas fa-heart"></i> ${responseData.love_count} loves </small>
                         </div>
                         <div class="btn-group btn-group-sm col-md-6 col-xl-6" role="group" aria-label="Basic example">
-                            <button type="button" class="btn btn-secondary" id="response" data-id="${responseData.id}" data-user="${responseData.user_profile.first_name}" data-response-id="response-text-${responseData.id}">
+                            <button type="button" class="btn btn-secondary" id="response" data-id="${responseData.id}" data-user="${responseData.user_profile.username}" data-response-id="response-text-${responseData.id}">
                                 <i class="fas fa-bullhorn"></i> Rehspond
                             </button>
                             <button type="button" class="btn btn-secondary" id="love" data-id="${responseData.id}" data-love-id="love-text-${responseData.id}">
@@ -256,10 +271,9 @@
                             <button type="button" class="btn btn-secondary" id="view" data-id="${responseData.id}"">
                                 <i class="fas fa-eye"></i> View
                             </button>`;
-            let optionalTemplate = `<button type="button" class="btn btn-secondary" id="edit" data-id="${responseData.id}" data-user="${responseData.user_profile.first_name}"><i class="fas fa-pencil-alt"></i> Edit</button>`;
+            let optionalTemplate = `<button type="button" class="btn btn-secondary" id="edit" data-id="${responseData.id}" data-text="${responseData.rehsponse_text}"><i class="fas fa-pencil-alt"></i> Edit</button>`;
             let containerEnd = `</div></div><hr/></div></div>`;
             let userName = "{{ request.user.username }}";
-            console.log(userName);
             if (responseData.user_profile.username === userName) {
                 finalTemplate = containerStart + bodyTemplate + optionalTemplate + containerEnd;
             } else {
@@ -271,7 +285,6 @@
 
         // attach a response on html dom
         function attachResponse(responseData, prepend, btnId){
-            // if respondData has id associates increase counter
             if (responseData.replying_to_id) {
                 if (btnId) {
                     let responseText = document.getElementById(btnId);
@@ -280,7 +293,6 @@
                     responseText.innerHTML = `<i class=\"fas fa-bullhorn\"></i> ${currResCount} responses `;
                 }
             } else {
-
                 if (prepend === true) {
                     responseCollection.prepend(formatResponse(responseData));
                 } else {

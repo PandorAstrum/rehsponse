@@ -1,18 +1,9 @@
-import uuid
 from django.db import models
 from django.conf import settings
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
-from django.db.models.signals import post_save
 
 from .validator import validate_response
-from django.urls import reverse, reverse_lazy
-
-
-def random_username(sender, instance, **kwargs):
-    """generate username from hardware"""
-    if not instance.username:
-        instance.username = uuid.uuid4().hex[:30]
+from django.urls import reverse_lazy
 
 
 def upload_location(instance, filename):
@@ -31,20 +22,20 @@ def upload_location(instance, filename):
 class UserManager(BaseUserManager):
     """Manager for user profile"""
 
-    def create_user(self, email, password=None, **extra_fields):
+    def create_user(self, email, username, password=None, **extra_fields):
         """Create a user profile"""
         if not email:
             raise ValueError("User must have an email address")
 
         email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
+        user = self.model(email=email, username=username, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, password, **extra_fields):
+    def create_superuser(self, email, username, password, **extra_fields):
         """Create a super user"""
-        user = self.create_user(email, password, **extra_fields)
+        user = self.create_user(email, username, password, **extra_fields)
         user.is_superuser = True
         user.is_staff = True
         user.save(using=self._db)
@@ -57,7 +48,7 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     date_of_birth = models.DateField(blank=True, null=True)
-    username = models.CharField(max_length=30, blank=True, null=True)
+    username = models.CharField(max_length=255, unique=True)
     short_bio = models.TextField(blank=True, null=True)
     address = models.TextField(blank=True, null=True)
     city = models.CharField(max_length=255, blank=True, null=True)
@@ -80,7 +71,7 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name']
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'username']
 
     def get_full_name(self):
         """Retrieve full name of user"""
@@ -94,17 +85,19 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
         """Retrieve username of user"""
         return self.username
 
+    def get_email(self):
+        """Retrieve email of user"""
+        return self.email
+
     def __str__(self):
         """String representation of user"""
-        return self.email
+        return self.username
 
 
 class RehsponseManager(models.Manager):
     """manager object for rehsponse"""
-
-    def all(self):
-        qs = super(RehsponseManager, self).filter(replying_to=None)
-        return qs
+    def from_user(self, user):
+        return self.get_query_set().filter(user_profile_id=user.id)
 
     def respond(self, user, replying_to_obj):
         if replying_to_obj.replying_to:
@@ -196,11 +189,3 @@ class Contact(models.Model):
     def __str__(self):
         return self.title_text
 
-
-# def post_save_user_receiver(sender, instance, created, *args, **kwargs):
-#     if created:
-#         new_user = UserProfile.objects.get_or_create(user=instance)
-#
-#
-# post_save.connect(post_save_user_receiver, sender=settings.AUTH_USER_MODEL)
-models.signals.pre_save.connect(random_username, sender=settings.AUTH_USER_MODEL)

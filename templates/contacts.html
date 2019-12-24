@@ -1,19 +1,13 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}{{block.super}} | Contacts {% endblock %}
-
 {% block content %}
     <div class="row">
-    <div class="col-md-2 shadow">
-
-    </div>
+    <div class="col-md-2 shadow"></div>
     <div class="col-md-2 pt-3 position-fixed" id="navigation-container">
         <h4 class="pt-3">Navigation</h4>
     </div>
-
-    <div class="col-md-10 pt-3" id="contacts-container">
-
-    </div>
+    <div class="col-md-10 pt-3" id="contacts-container"></div>
 </div>
 
 {% endblock %}
@@ -55,22 +49,14 @@
         }
 
         // fetch contacts from api
-        function getContactData(){
-            $.ajax({
-                url: '/api/contacts/',
-                method: "GET",
-                success: function (data) {
-                    $.each(data, function(key, val){
+        $.getRequest (contactAPI, null, function(jqXHR, textStatus) {
+            if (jqXHR.status === 200) {
+                $.each(jqXHR.responseJSON, function(key, val){
                         attachContent(val);
                     });
-                },
-                error: function (data) {
-                    console.log(data);
-                }
-            })
-        }
+            }
+        });
 
-        getContactData();
         flushingFooter();
     })
     </script>

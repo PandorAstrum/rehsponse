@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}{{ block.super }} | User Profile {% endblock %}
-
 {% block content %}
     <div class="row pt-3">
         <div class="col-xl-4 mt-xl-auto mb-xl-auto col-lg-4 text-center mt-lg-auto mb-lg-auto mt-md-auto mb-md-auto col-md-4 col-sm-4">
@@ -55,7 +54,6 @@
         $.getRequest(req_url, null, function(jqXHR, textStatus){
             let counter = 1;
             if (jqXHR.status === 200) {
-                console.log(jqXHR.responseJSON.all_post[1]);
                 $.each(jqXHR.responseJSON.all_post, function (key, val) {
                     let tableTemplate =
                         `<tr>

@@ -1,25 +1,20 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from django.urls import path
 from rehsponse.api import views
-
-router = DefaultRouter()
-router.register('user', views.UserProfileViewSets)
 
 urlpatterns = [
     path('login/', views.UserLoginApiView.as_view()),
-    # path('', include(router.urls)),
-    path('list/', views.RehsponseListAPIView.as_view(), name='apilist'),  # api/list api/list/?q=bla (search)
+    path('list/', views.RehsponseListAPIView.as_view(), name='apilist'),                    # api/list api/list/?q=bla (search)
     path('rehsponse/<int:pk>/', views.RehsponseDetailAPIView.as_view(), name="apidetail"),  # api/rehsponse/1
-    path('rehsponse/create/', views.RehsponseCreateAPIView.as_view(), name="apicreate"),  # api/rehsponse/create
+    path('rehsponse/create/', views.RehsponseCreateAPIView.as_view(), name="apicreate"),    # api/rehsponse/create
     path('rehsponse/<int:pk>/edit', views.RehsponseUpdateAPIView.as_view(), name="apiupdate"),  # api/rehsponse/1/edit
     path('rehsponse/<int:pk>/delete', views.RehsponseDeleteAPIView.as_view(), name="apidelete"),  # api/rehsponse/1/delete
-    path('rehsponse/<int:pk>/loved/', views.LoveToggleAPIView.as_view(), name="apilove"),  # api/rehsponse/1/loved
+    path('rehsponse/<int:pk>/loved/', views.LoveToggleAPIView.as_view(), name="apilove"),   # api/rehsponse/1/loved
 
-    path('tags/', views.HashTagListAPIView.as_view(), name="apitags"),  # api/tags
-    path('contacts/', views.ContactListAPIView.as_view(), name="apicontact"),  # api/contacts
+    path('tags/', views.HashTagListAPIView.as_view(), name="apitags"),                      # api/tags
+    path('contacts/', views.ContactListAPIView.as_view(), name="apicontact"),               # api/contacts
 
-    path('user/create/', views.UserCreateAPIView.as_view(), name="apiusercreate"),  # api/user/username/rehsponses
-    path('user/<str:username>/rehsponses', views.UserDetailAPIView.as_view(), name="apidetailuser"),  # api/user/username/rehsponses
-    path('user/list', views.UserListAPIView.as_view(), name="apiuserlist"),  # api/user/username/rehsponses
-
+    path('user/create/', views.UserCreateAPIView.as_view(), name="apiusercreate"),          # api/user/create
+    path('user/<str:username>/rehsponses', views.UserDetailAPIView.as_view(), name="apiuserdetail"),  # api/user/123/rehsponses
+    path('user/<str:username>/edit', views.RehsponseUpdateAPIView.as_view(), name="apiuserupdate"),  # api/user/123/edit
+    path('user/<str:username>/delete', views.RehsponseDeleteAPIView.as_view(), name="apiuserdelete"),  # api/user/123/delete
 ]

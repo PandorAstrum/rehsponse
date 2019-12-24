@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{block.super}} | 404 {% endblock %}
+{% block nav %}
+    {% include 'navbar.html' %}
+{% endblock %}
+{% block content %}
+<div class="row pt-3">
+    <div class="col-xl-6 text-center col-lg-6 col-md-6 col-sm-6 col-12" data-pg-collapsed>
+        <img class="w-100 img-thumbnail" src="{% static 'assets/img/404-page-image.png' %}" alt="error">
+    </div>
+    <div class="col-xl-6 text-center align-items-center align-content-center d-flex flex-column justify-content-center col-lg-6 col-md-6 col-12 col-sm-6" data-pg-collapsed>
+        <h1 class="font-weight-bolder">404</h1>
+        <h1>OOOPS !</h1>
+        <h6>We can't seem to find the page you are looking for</h6>
+    </div>
+</div>
+
+{% endblock %}
+{% block script %}
+    <script>
+    $(document).ready(function(){
+
+        flushingFooter();
+    })
+    </script>
+{% endblock %}

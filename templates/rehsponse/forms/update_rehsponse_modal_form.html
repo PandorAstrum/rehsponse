@@ -1,2 +1,8 @@
-{% include "rehsponse/forms/create_rehsponse_form.html"  with form=form btn_title="Update" %}
-{% include "modals.html" with modal_id="updateModal" modal_label_id="updateLabelModal" modale_label="Edit Rehsponse" modal_body="" btn_close="Cancel" btn_okay="Update" %}
+<!-- Forms -->
+<form {% if form_class %} class='{{ form_class }}' {% endif %}class="form-group" method="POST" action="{% if action_url %}{{ action_url }}{% endif %}">
+    {% csrf_token %}
+    <!-- render django forms here -->
+    {{ form.as_p }}
+    {% if btn_close %} <input class="btn btn-primary float-right" type="submit" value="Cancel"> {% endif %}
+    <input class="btn btn-primary float-right" type="submit" value="Edit">
+</form>

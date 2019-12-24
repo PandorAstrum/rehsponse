@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}{{ block.super }} | Tags {% endblock %}
+{% block nav %}
+    {% include 'navbar.html' %}
+{% endblock %}
 {% block content %}
 <div class="row pt-3">
     <div class="col-xl-12 text-center">
@@ -8,7 +11,7 @@
         {% for response in obj.get_rehsponse %}
             <div class="card text-center">
                 <div class="card-header">
-                    @{{ response.user_profile.first_name }}
+                    @{{ response.user_profile.username }}
                 </div>
                 <div class="card-body">
                     <h5 class="card-title">{{ response.rehsponse_text }}</h5>

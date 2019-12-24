@@ -9,8 +9,7 @@
                 </button>
             </div>
             <input type="hidden" id="hidden-response-update" value="" name="replying_to_id" />
-            <form action="" class="update-response-form"> {% csrf_token %}
-
+            <form action="" method="POST" class="update-response-form"> {% csrf_token %}
                 <div class="modal-body">
                     <textarea name="rehsponse_text" id="update-textarea" cols="30" rows="10"></textarea>
                 </div>

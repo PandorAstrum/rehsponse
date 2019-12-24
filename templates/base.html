@@ -20,7 +20,7 @@
   </head>
   <body>
     {% block modal %} {% endblock %}
-    {% include "navbar.html" %}
+    {% include 'navbar.html' %}
     <div class="container">
         {% block content %}
         {% endblock %}
@@ -93,9 +93,10 @@
          //API endpoints
          let responseListAPI = "/api/list";
          let responseCreateAPI = "/api/rehsponse/create/";
-         let responseDetailAPI = '/api/rehsponse/';
+         let responseDetailAPI = "/api/rehsponse/";
          let hashTagListAPI = "/api/tags/";
          let userDetailAPI = "api/user/";
+         let contactAPI = "/api/contacts/";
 
          $(document).ready(function(){
 
@@ -103,26 +104,33 @@
             let doneInterval = 500;
             let searchForm = $("#nav-search-form input[type=search]");
             let searchQuery;
-            var username = "John";
             var csrftoken = getCookie('csrftoken');
             // functions --------------------------------------------------------------
 
+             // safe method
+             function csrfSafeMethod(method) {
+                // these HTTP methods do not require CSRF protection
+                return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+             }
+             // setting up ajax call
+             $.ajaxSetup({
+                 beforeSend: function(xhr, settings) {
+                     if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                         xhr.setRequestHeader("X-CSRFToken", '{{ csrf_token }}');
+                     }
+                 }
+             });
 
-            // auto search activate after some time
-            function doneSearchTyping(){
+             // auto search activate after some time
+             function doneSearchTyping(){
                 if (searchQuery){
                     document.location.href = '/search/?q=' + searchQuery;
                 }
-            }
+             }
 
             // post query to api
             $.postRequest = function(url, data, completeCallback) {
                 return jQuery.ajax({
-                   // headers: {
-                        //'Accept': 'application/json',
-                        //'Content-Type': 'application/json',
-                        //'"X-CSRFToken"': csrftoken
-                    //},
                     'type': 'POST',
                     'url': url,
                     'data': data,
@@ -133,9 +141,6 @@
             // post query to api
             $.patchRequest = function(url, data, completeCallback) {
                 return jQuery.ajax({
-                    //headers: {
-                    //    'X-HTTP-Method-Override': 'PATCH',
-                    //},
                     'type': 'PATCH',
                     'url': url,
                     'data': data,
@@ -187,9 +192,6 @@
                     'complete': completeCallback
                 });
             };
-
-
-
 
             // search form key event
             searchForm.keyup(function(event){
