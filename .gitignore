@@ -16,6 +16,7 @@ env/
 venv/
 ENV/
 DjangoVenv/
+static-serve/
 
 .DS_Store
 bin/
