@@ -21,11 +21,11 @@
             </div>
 
             <div id="registration-form-username" class="form-group">
-                {{ form.username.label_tag }}
-                {% if form.username.errors %}
+                {{ form.user_name.label_tag }}
+                {% if form.user_name.errors %}
                     <p style="color: red">Sorry this username is already taken</p>
                 {% endif %}
-                {{ form.username }}
+                {{ form.user_name }}
             </div>
             <div class="row">
                 <div class="col-xl-6">

@@ -9,8 +9,8 @@
 {% block content %}
     <div class="row pt-3" data-pg-collapsed>
         <div class="col-md-2 text-center shadow pt-3" data-pg-collapsed>
-            <a href="{% url 'userdetail' username=request.user.username %}">
-                <img class="w-200 img-thumbnail rounded-circle mx-auto shadow-sm" src="{% static 'assets/img/user-profile-svgrepo-com.svg' %}" width="140" height="140" alt="{{ request.user.username}}_photo">
+            <a href="{% url 'userdetail' user_name=request.user.user_name %}">
+                <img class="w-200 img-thumbnail rounded-circle mx-auto shadow-sm" src="{% static 'assets/img/user-profile-svgrepo-com.svg' %}" width="140" height="140" alt="{{ request.user.user_name}}_photo">
             </a>
             <h5 class="font-weight-bold pt-3" >{{request.user.first_name }} {{ request.user.last_name }}</h5>
             <h6><small>Joined: {{request.user.created_on }}</small></h6>
@@ -43,6 +43,7 @@
         let originalPostCounter = 0;
         let spanChars;
         let reResponseId;
+        let responseSpan;
         let responseCollection = $("#response-container");
         let tagCollection = $('#tag-container');
         let replyTextArea = $("#reply-modal textarea");
@@ -106,29 +107,16 @@
             let formData = this_.serialize();
             let reId = $("input#hidden-response-update[type='hidden']").val();
             let responseEditAPI = responseDetailAPI + reId + "/edit";
-            console.log(formData);
             if (charsCurrent >= 0) {
                 // create post response
                 $.patchRequest(responseEditAPI, formData, function(jqXHR, textStatus){
                     if (jqXHR.status === 200) {
-                        // clear text area
-                        updateTextArea.val("");
-                        // clear div
-                        $('#response-container').html('');
-                        // re render div
-                        $.getRequest(responseListAPI, query, function(jqXHR, textStatus){
-                            if (jqXHR.status === 200) {
-                                responseList = jqXHR.responseJSON.results;
-                                if (jqXHR.responseJSON.next){
-                                    nextResponseURL = jqXHR.responseJSON.next;
-                                    loadMore(loadBtn, nextResponseURL);
-                                } else {
-                                    loadBtn.css('display', 'none');
-                                }
-                                parseResponse(responseList);
-                                updateHashLinkInHTML($(".media-body"));
-                            }
-                        });
+                        if (responseSpan) {
+                            let updatedText = updateTextArea.val();
+                            responseSpan.text(updatedText);
+                            updateTextArea.val('');
+                            updateHashLinkInHTML(responseSpan);
+                        }
                         // hide modal
                         updateFormModal.modal("hide");
                     }
@@ -218,14 +206,14 @@
             e.preventDefault();
             let thisBtn = $(this);
             let reId = thisBtn.attr("data-id");
-            let reText = thisBtn.attr("data-text");
+            responseSpan = $("#rehsponse-text-" + reId);
             // pop up form modal
             updateFormModal.modal();
 
             updateFormModal.on("shown.bs.modal", function(){
                 $("input#hidden-response-update[type='hidden']").val(reId);
                 // get text from id
-                updateTextArea.val(reText);
+                updateTextArea.val(responseSpan.text());
             });
             updateFormModal.on("hide.bs.modal", function(){
                 updateTextArea.val('');
@@ -248,21 +236,21 @@
                 `<div class="col-md-10">
                     <div class="row">
                         <div class="col-xl-6 text-left text-sm-center text-lg-left col-lg-6">
-                            <span>@<a href="${responseData.user_profile.user_url}">${responseData.user_profile.username}</a></span>
+                            <span>@<a href="${responseData.user_profile.user_url}">${responseData.user_profile.user_name}</a></span>
                         </div>
                         <div class="col-xl-6 text-right text-sm-center col-lg-6 text-lg-right">
                             <small>at ${responseData.date_display} (${responseData.timesince})</small>
                         </div>
                     </div>
                     <div class="row">
-                        <span class="media-body">${responseData.rehsponse_text}</span>
+                        <span class="media-body" id="rehsponse-text-${responseData.id}">${responseData.rehsponse_text}</span>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mt-auto mb-auto pt-xl-auto mb-xl-auto text-sm-center col-lg-6 text-lg-left">
                             <small id="response-text-${responseData.id}"><i class="fas fa-bullhorn"></i> ${responseData.reply_count} responses</small> | <small id="love-text-${responseData.id}"><i class="fas fa-heart"></i> ${responseData.love_count} loves </small>
                         </div>
                         <div class="btn-group btn-group-sm col-md-6 col-xl-6" role="group" aria-label="Basic example">
-                            <button type="button" class="btn btn-secondary" id="response" data-id="${responseData.id}" data-user="${responseData.user_profile.username}" data-response-id="response-text-${responseData.id}">
+                            <button type="button" class="btn btn-secondary" id="response" data-id="${responseData.id}" data-user="${responseData.user_profile.user_name}" data-response-id="response-text-${responseData.id}">
                                 <i class="fas fa-bullhorn"></i> Rehspond
                             </button>
                             <button type="button" class="btn btn-secondary" id="love" data-id="${responseData.id}" data-love-id="love-text-${responseData.id}">
@@ -271,10 +259,10 @@
                             <button type="button" class="btn btn-secondary" id="view" data-id="${responseData.id}"">
                                 <i class="fas fa-eye"></i> View
                             </button>`;
-            let optionalTemplate = `<button type="button" class="btn btn-secondary" id="edit" data-id="${responseData.id}" data-text="${responseData.rehsponse_text}"><i class="fas fa-pencil-alt"></i> Edit</button>`;
+            let optionalTemplate = `<button type="button" class="btn btn-secondary" id="edit" data-id="${responseData.id}"><i class="fas fa-pencil-alt"></i> Edit</button>`;
             let containerEnd = `</div></div><hr/></div></div>`;
-            let userName = "{{ request.user.username }}";
-            if (responseData.user_profile.username === userName) {
+            let userName = "{{ request.user.user_name }}";
+            if (responseData.user_profile.user_name === userName) {
                 finalTemplate = containerStart + bodyTemplate + optionalTemplate + containerEnd;
             } else {
                 finalTemplate = containerStart + bodyTemplate + containerEnd;

@@ -1,3 +1,4 @@
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django import forms
 from .models import Rehsponse, UserProfile
 from django.conf import settings
@@ -18,28 +19,18 @@ class RehsponseModelForm(forms.ModelForm):
 
 
 class RegistrationModelForm(forms.Form):
-    """A form for updating"""
-    username = forms.CharField(label="Username:", widget=forms.TextInput(attrs={'placeholder': 'Choose a username'}))
+    """A form for sign up"""
+    user_name = forms.CharField(label="Username:", widget=forms.TextInput(attrs={'placeholder': 'Choose a username'}))
     first_name = forms.CharField(label="First Name:", widget=forms.TextInput(attrs={'placeholder': 'Your first name'}))
     last_name = forms.CharField(label="Last Name:", widget=forms.TextInput(attrs={'placeholder': 'Your last name'}))
     email = forms.CharField(label="Email:", widget=forms.EmailInput(attrs={'placeholder': 'Enter a valid email'}))
     password = forms.CharField(label="Password:", widget=forms.PasswordInput(attrs={'placeholder': 'Your Password'}))
 
-    # class Meta:
-    #     model = UserProfile
-    #     fields = [
-    #         'email',
-    #         "username",
-    #         'password',
-    #         "first_name",
-    #         "last_name"
-    #     ]
-
-    def clean_username(self):
-        username = self.cleaned_data.get('username')
-        if User.objects.filter(username__icontains=username).exists():
+    def clean_user_name(self):
+        user_name = self.cleaned_data.get('user_name')
+        if User.objects.filter(user_name__icontains=user_name).exists():
             raise forms.ValidationError("This user name is taken")
-        return username
+        return user_name
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
@@ -62,3 +53,17 @@ class UserModelForm(forms.ModelForm):
             'phone',
             'date_of_birth'
         ]
+
+
+class UserProfileCreationForm(UserCreationForm):
+
+    class Meta(UserCreationForm):
+        model = UserProfile
+        fields = ('email', 'first_name', 'last_name', 'user_name', 'password')
+
+
+class UserProfileChangeForm(UserChangeForm):
+
+    class Meta:
+        model = UserProfile
+        fields = ('email', 'first_name', 'last_name', 'user_name')

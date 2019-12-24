@@ -29,13 +29,13 @@ class UserRegistrationView(FormView):
     success_url = '/login/'
 
     def form_valid(self, form):
-        username = form.cleaned_data.get("username")
+        user_name = form.cleaned_data.get("user_name")
         email = form.cleaned_data.get("email")
         first_name = form.cleaned_data.get("first_name")
         last_name = form.cleaned_data.get("last_name")
         password = form.cleaned_data.get("password")
         new_user = models.UserProfile.objects.create_user(email=email,
-                                                          username=username,
+                                                          user_name=user_name,
                                                           first_name=first_name,
                                                           last_name=last_name)
         new_user.set_password(password)
@@ -58,31 +58,31 @@ def logout_view(request):
 
 
 class UserDetailView(LoginRequiredMixin, DetailView):
-    """User profile (RETRIEVE SINGLE) url: /user/<username>/rehsponses"""
+    """User profile (RETRIEVE SINGLE) url: /user/<user_name>/rehsponses"""
     template_name = "user/user_detail.html"
     login_url = '/login/'
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super(UserDetailView, self).get_context_data(object_list=None, **kwargs)
-        _username = self.kwargs.get('username')
-        context['user_url'] = get_object_or_404(models.UserProfile, username__iexact=_username)
+        _username = self.kwargs.get('user_name')
+        context['user_url'] = get_object_or_404(models.UserProfile, user_name__iexact=_username)
         return context
 
     def get_object(self, queryset=models.UserProfile):
-        _username = self.kwargs.get('username')
-        obj = get_object_or_404(models.UserProfile, username__iexact=_username)
+        _username = self.kwargs.get('user_name')
+        obj = get_object_or_404(models.UserProfile, user_name__iexact=_username)
         return obj
 
 
 class UserUpdateView(LoginRequiredMixin, UserOwnerMixin, UpdateView):
-    """Change user profile (PUT, PATCH) url: /user/<username>/edit"""
+    """Change user profile (PUT, PATCH) url: /user/<user_name>/edit"""
     template_name = "user/user_edit.html"
     success_url = '/'
     form_class = UserModelForm
 
     def get_object(self, queryset=models.UserProfile):
-        _username = self.kwargs.get('username')
-        obj = get_object_or_404(models.UserProfile, username__iexact=_username)
+        _username = self.kwargs.get('user_name')
+        obj = get_object_or_404(models.UserProfile, user_name__iexact=_username)
         return obj
 
 

@@ -20,8 +20,8 @@ urlpatterns = [
     path('rehsponse/create/', views.RehsponseCreateView.as_view(), name="create"),
     path('rehsponse/board/', views.RehsponseBoardListView.as_view(), name="board"),
 
-    re_path(r'^user/(?P<username>\w+)/rehsponses$', views.UserDetailView.as_view(), name='userdetail'),  # /user/username/rehsponses
-    re_path(r'^user/(?P<username>\w+)/edit$', views.UserUpdateView.as_view(), name='useredit'),  # /user/username/edit
+    re_path(r'^user/(?P<user_name>\w+)/rehsponses$', views.UserDetailView.as_view(), name='userdetail'),  # /user/username/rehsponses
+    re_path(r'^user/(?P<user_name>\w+)/edit$', views.UserUpdateView.as_view(), name='useredit'),  # /user/username/edit
 
     re_path(r'^tags/(?P<hashtag>.*)/$', views.HashTagView.as_view(), name='hashtag'),  # /tag/hashtag
     path('contacts/', views.ContactListView.as_view(), name="contact"),  # /contacts/

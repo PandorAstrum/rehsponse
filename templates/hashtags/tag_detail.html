@@ -11,7 +11,7 @@
         {% for response in obj.get_rehsponse %}
             <div class="card text-center">
                 <div class="card-header">
-                    @{{ response.user_profile.username }}
+                    @{{ response.user_profile.user_name }}
                 </div>
                 <div class="card-body">
                     <h5 class="card-title">{{ response.rehsponse_text }}</h5>

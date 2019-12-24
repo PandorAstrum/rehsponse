@@ -14,7 +14,7 @@ urlpatterns = [
     path('contacts/', views.ContactListAPIView.as_view(), name="apicontact"),               # api/contacts
 
     path('user/create/', views.UserCreateAPIView.as_view(), name="apiusercreate"),          # api/user/create
-    path('user/<str:username>/rehsponses', views.UserDetailAPIView.as_view(), name="apiuserdetail"),  # api/user/123/rehsponses
-    path('user/<str:username>/edit', views.RehsponseUpdateAPIView.as_view(), name="apiuserupdate"),  # api/user/123/edit
-    path('user/<str:username>/delete', views.RehsponseDeleteAPIView.as_view(), name="apiuserdelete"),  # api/user/123/delete
+    path('user/<str:user_name>/rehsponses', views.UserDetailAPIView.as_view(), name="apiuserdetail"),  # api/user/123/rehsponses
+    path('user/<str:user_name>/edit', views.RehsponseUpdateAPIView.as_view(), name="apiuserupdate"),  # api/user/123/edit
+    path('user/<str:user_name>/delete', views.RehsponseDeleteAPIView.as_view(), name="apiuserdelete"),  # api/user/123/delete
 ]

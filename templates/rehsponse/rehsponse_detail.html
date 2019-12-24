@@ -23,7 +23,7 @@ $(document).ready(function(){
                     <img src="{% static 'assets/img/user-profile-svgrepo-com.svg' %}" class="mr-3" alt="..." width="64" height="64">
                 </a>
                 <div class="media-body">
-                    <h5 class="mt-0">@<a href="${responseDataReplies.user_profile.user_url}">${responseDataReplies.user_profile.username}</a> <small>${responseDataReplies.timesince}</small></h5>
+                    <h5 class="mt-0">@<a href="${responseDataReplies.user_profile.user_url}">${responseDataReplies.user_profile.user_name}</a> <small>${responseDataReplies.timesince}</small></h5>
                     ${responseDataReplies.rehsponse_text}
 
                 </div>
@@ -37,7 +37,7 @@ $(document).ready(function(){
             let responseTemplate =
             `<img src="{% static 'assets/img/user-profile-svgrepo-com.svg' %}" class="mr-3" alt="..." width="64" height="64">
             <div class="media-body">
-                <h5 class="mt-0">@<a href="${responseData.user_profile.user_url}">${responseData.user_profile.username}</a> <small>${responseData.timesince}</small></h5>
+                <h5 class="mt-0">@<a href="${responseData.user_profile.user_url}">${responseData.user_profile.user_name}</a> <small>${responseData.timesince}</small></h5>
                 ${responseData.rehsponse_text}
                 <hr>
                 <div id="child-response">

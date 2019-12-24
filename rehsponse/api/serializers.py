@@ -15,12 +15,12 @@ class UserSimplified(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'city',
-            "username",
+            "user_name",
             'user_url',
         ]
 
     def get_user_url(self, obj):
-        return reverse_lazy('userdetail', kwargs={'username': obj.username})
+        return reverse_lazy('userdetail', kwargs={'user_name': obj.user_name})
 
 
 class RehsponseChildSerializer(serializers.ModelSerializer):
@@ -142,7 +142,7 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
     def get_user_url(self, obj):
-        return reverse_lazy('userdetail', kwargs={'username': obj.username})
+        return reverse_lazy('userdetail', kwargs={'user_name': obj.user_name})
 
     def get_all_responders(self, obj):
         request = self.context.get("request")

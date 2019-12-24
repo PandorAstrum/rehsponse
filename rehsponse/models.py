@@ -1,14 +1,13 @@
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
-
 from .validator import validate_response
 from django.urls import reverse_lazy
 
 
 def upload_location(instance, filename):
-    post_model = instance.__class__
-    new_id = post_model.objects.order_by("id").last().id + 1
+    _model = instance.__class__
+    new_id = _model.objects.order_by("id").last().id + 1
     """
     instance.__class__ gets the model Post. We must use this method because the model is defined below.
     Then create a queryset ordered by the "id"s of each object, 
@@ -21,21 +20,22 @@ def upload_location(instance, filename):
 
 class UserManager(BaseUserManager):
     """Manager for user profile"""
-
-    def create_user(self, email, username, password=None, **extra_fields):
+    def create_user(self, email, user_name, password=None, **extra_fields):
         """Create a user profile"""
         if not email:
             raise ValueError("User must have an email address")
+        if not user_name:
+            raise ValueError("User must enter a username.")
 
         email = self.normalize_email(email)
-        user = self.model(email=email, username=username, **extra_fields)
+        user = self.model(email=email, user_name=user_name, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, username, password, **extra_fields):
+    def create_superuser(self, email, user_name, password, **extra_fields):
         """Create a super user"""
-        user = self.create_user(email, username, password, **extra_fields)
+        user = self.create_user(email, user_name, password, **extra_fields)
         user.is_superuser = True
         user.is_staff = True
         user.save(using=self._db)
@@ -44,13 +44,13 @@ class UserManager(BaseUserManager):
 
 class UserProfile(AbstractBaseUser, PermissionsMixin):
     """Database user profile model in the system"""
-    email = models.EmailField(max_length=255, unique=True)
+    email = models.EmailField(max_length=255, unique=True, verbose_name='email address')
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     date_of_birth = models.DateField(blank=True, null=True)
-    username = models.CharField(max_length=255, unique=True)
+    user_name = models.CharField(max_length=255, unique=True)
     short_bio = models.TextField(blank=True, null=True)
-    address = models.TextField(blank=True, null=True)
+    address = models.CharField(max_length=255, blank=True, null=True)
     city = models.CharField(max_length=255, blank=True, null=True)
     country = models.CharField(max_length=255, blank=True, null=True)
     phone = models.IntegerField(blank=True, null=True)
@@ -59,7 +59,7 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
         null=True,
         blank=True,
         width_field="width_field",
-        height_field="height_field"
+        height_field="height_field",
     )
     height_field = models.IntegerField(default=0, null=True)
     width_field = models.IntegerField(default=0, null=True)
@@ -71,7 +71,7 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'username']
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'user_name']
 
     def get_full_name(self):
         """Retrieve full name of user"""
@@ -81,17 +81,13 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
         """Retrieve short name of user"""
         return self.first_name
 
-    def get_username(self):
-        """Retrieve username of user"""
-        return self.username
-
     def get_email(self):
         """Retrieve email of user"""
         return self.email
 
     def __str__(self):
         """String representation of user"""
-        return self.username
+        return self.user_name
 
 
 class RehsponseManager(models.Manager):
@@ -188,4 +184,3 @@ class Contact(models.Model):
 
     def __str__(self):
         return self.title_text
-

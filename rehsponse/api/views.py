@@ -134,8 +134,8 @@ class UserDetailAPIView(generics.RetrieveAPIView):
         return context
 
     def get_object(self, queryset=models.UserProfile):
-        _user_name = self.kwargs.get('username')
-        obj = get_object_or_404(models.UserProfile, username__iexact=_user_name)
+        _user_name = self.kwargs.get('user_name')
+        obj = get_object_or_404(models.UserProfile, user_name__iexact=_user_name)
         return obj
 
     def get_queryset(self):
@@ -150,8 +150,8 @@ class UserCreateAPIView(generics.CreateAPIView):
     # authentication_classes = (TokenAuthentication,)
 
     def get_object(self, queryset=models.UserProfile):
-        _user_name = self.kwargs.get('username')
-        obj = get_object_or_404(models.UserProfile, username__iexact=_user_name)
+        _user_name = self.kwargs.get('user_name')
+        obj = get_object_or_404(models.UserProfile, user_name__iexact=_user_name)
         return obj
 
 
@@ -162,8 +162,8 @@ class UserEditAPIView(generics.UpdateAPIView):
     # authentication_classes = (TokenAuthentication,)
 
     def get_object(self, queryset=models.UserProfile):
-        _user_name = self.kwargs.get('username')
-        obj = get_object_or_404(models.UserProfile, username__iexact=_user_name)
+        _user_name = self.kwargs.get('user_name')
+        obj = get_object_or_404(models.UserProfile, user_name__iexact=_user_name)
         return obj
 
 
@@ -174,6 +174,6 @@ class UserDeleteAPIView(generics.DestroyAPIView):
     # authentication_classes = (TokenAuthentication,)
 
     def get_object(self, queryset=models.UserProfile):
-        _user_name = self.kwargs.get('username')
-        obj = get_object_or_404(models.UserProfile, username__iexact=_user_name)
+        _user_name = self.kwargs.get('user_name')
+        obj = get_object_or_404(models.UserProfile, user_name__iexact=_user_name)
         return obj
