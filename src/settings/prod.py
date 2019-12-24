@@ -19,7 +19,7 @@ ALLOWED_HOSTS = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'rehsponseDB',
+        'NAME': 'rehsponsedb',
         'USER': 'db_admin',
         'PASSWORD': 'FiverrUser1!',
         'HOST': 'localhost',
